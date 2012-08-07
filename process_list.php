@@ -1,24 +1,31 @@
 <?php
-/**
- * process_list.php
- *
- * This script inserts, updates, and deletes Concept Lists to mcl.concept_list.
- * This script takes to url parameters:
- *     s (required) - case insensitive type of submission: update, create new, delete
- *     name - must be unique
- *     source - db name of the concept dictionary source
- *     list - the concept_list_id (ignored if submit type is 'create new')
- *     concepts - comma-separated list of 
- *     admin - set to 1 to allow editing of restricted lists
- */
+/****************************************************************************************************
+** process_list.php
+**
+** This script inserts, updates, and deletes Concept Lists to the MCL concept_list table.
+** Note that this functionality is only supported when running in ENHANCED MODE.
+** --------------------------------------------------------------------------------------------------
+** GET Parameters:
+**     s (required) - case insensitive type of submission: update, create new, delete
+**     name - must be unique
+**     source - db name of the concept dictionary source
+**     list - the concept_list_id (ignored if submit type is 'create new')
+**     concepts - comma-separated list of 
+**     admin - set to 1 to allow editing of restricted lists
+*****************************************************************************************************/
 
-ini_set('display_errors',1);
-error_reporting(E_ALL|E_STRICT);
-session_start();
 
-require_once('LocalSettings.inc.php');
-require_once('ConceptListFactory.inc.php');
-require_once('search_common.inc.php');
+// Set error reporting state
+	ini_set('display_errors',1);
+	error_reporting(E_ALL|E_STRICT);
+
+// Start the session before including files
+	session_start();
+
+// Include dependencies
+	require_once('LocalSettings.inc.php');
+	require_once('fw/ConceptListFactory.inc.php');
+	require_once('fw/search_common.inc.php');
 
 // Set debug status
 	$debug = false;
@@ -63,6 +70,7 @@ require_once('search_common.inc.php');
 	if ($list_id == 1) {	
 		if (!isset($_POST['admin'])) $restrict_editing = true;
 	}
+
 
 /****************************************************************************
 **	Process Delete

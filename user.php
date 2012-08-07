@@ -1,7 +1,17 @@
 <?php
+/****************************************************************************************************
+** user.php
+**
+** UNDER CONSTRUCTION
+**
+** View and edit user account settings.
+** --------------------------------------------------------------------------------------------------
+** POST Parameters:
+*****************************************************************************************************/
+
 
 require_once('LocalSettings.inc.php');
-require_once(MCL_ROOT . 'MclUser.inc.php');
+require_once(MCL_ROOT . 'fw/MclUser.inc.php');
 session_start();
 $user = MclUser::getLoggedInUser();
 

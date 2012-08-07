@@ -1,8 +1,16 @@
 <?php
+/****************************************************************************************************
+** list.php
+**
+** RETIRED
+**
+** Note that I think this page needs to be retired...
+*****************************************************************************************************/
+
 
 require_once('LocalSettings.inc.php');
-require_once(MCL_ROOT . 'ConceptListFactory.inc.php');
-require_once(MCL_ROOT . 'ConceptListDefinition.inc.php');
+require_once(MCL_ROOT . 'fw/ConceptListFactory.inc.php');
+require_once(MCL_ROOT . 'fw/ConceptListDefinition.inc.php');
 
 // Get the parameters
 	$arr_concepts = null;

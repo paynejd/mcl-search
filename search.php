@@ -1,6 +1,8 @@
 <?php
 /****************************************************************************************************
 ** search.php
+**
+** The primary entry point into searching the dictionary.
 ** --------------------------------------------------------------------------------------------------
 ** url parameters:
 **		q					search query
@@ -22,14 +24,14 @@ error_reporting(-1);
 ini_set('display_errors',1);
 
 require_once('LocalSettings.inc.php');
-require_once(MCL_ROOT . 'search_common.inc.php');
-require_once(MCL_ROOT . 'ConceptSearch.inc.php');
-require_once(MCL_ROOT . 'ConceptSearchFactory.inc.php');
-require_once(MCL_ROOT . 'ConceptSearchResultsRenderer.inc.php');
-require_once(MCL_ROOT . 'ConceptSearchSourceFactory.inc.php');
-require_once(MCL_ROOT . 'ConceptDatatypeCollection.inc.php');
-require_once(MCL_ROOT . 'ConceptClassCollection.inc.php');
-require_once(MCL_ROOT . 'MclUser.inc.php');
+require_once(MCL_ROOT . 'fw/search_common.inc.php');
+require_once(MCL_ROOT . 'fw/ConceptSearch.inc.php');
+require_once(MCL_ROOT . 'fw/ConceptSearchFactory.inc.php');
+require_once(MCL_ROOT . 'fw/ConceptSearchResultsRenderer.inc.php');
+require_once(MCL_ROOT . 'fw/ConceptSearchSourceFactory.inc.php');
+require_once(MCL_ROOT . 'fw/ConceptDatatypeCollection.inc.php');
+require_once(MCL_ROOT . 'fw/ConceptClassCollection.inc.php');
+require_once(MCL_ROOT . 'fw/MclUser.inc.php');
 
 session_start();
 
@@ -281,11 +283,11 @@ if (  $full_search_query  )
 <title>MCL:Search</title>
 <link href="main.css" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/base/jquery-ui.css">
-<script type="text/javascript" src="jquery-1.6.4.js"></script>
-<script type="text/javascript" src="jquery.json-2.3.min.js"></script>
-<script type="text/javascript" src="jquery.watermark.js"></script>
+<script type="text/javascript" src="js/jquery-1.6.4.js"></script>
+<script type="text/javascript" src="js/jquery.json-2.3.min.js"></script>
+<script type="text/javascript" src="js/jquery.watermark.js"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
-<script type="text/javascript" src="search.js"></script>
+<script type="text/javascript" src="js/search.js"></script>
 <script type="text/javascript">
   // google analytics
   var _gaq = _gaq || [];
@@ -313,7 +315,7 @@ if (  $full_search_query  )
 		<form id="form_user" action="signin.php" method="post">
 			<input type="text" id="uid" name="uid" />
 			<input type="password" id="pwd" name="pwd" />
-			<input type="submit" id="btnsignin" value="Sign In" />&nbsp;&nbsp;|&nbsp;&nbsp;<a href="signup.html">Sign Up</a>
+			<input type="submit" id="btnsignin" value="Sign In" />&nbsp;&nbsp;|&nbsp;&nbsp;<a href="signup.php">Sign Up</a>
 		</form>
 	</div>
 <?php } ?>

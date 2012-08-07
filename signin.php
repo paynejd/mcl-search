@@ -1,7 +1,19 @@
 <?php
+/****************************************************************************************************
+** signin.php
+**
+** Page to authenticate a user. Redirects upon success; displays a login form 
+** upon failure or if no credentials are passed. Credentials must be passed through POST.
+** --------------------------------------------------------------------------------------------------
+** POST parameters:
+**		uid 	Username
+**		pwd		Password
+**		r		Redirect url
+*****************************************************************************************************/
+
 
 require_once('LocalSettings.inc.php');
-require_once(MCL_ROOT . 'MclUser.inc.php');
+require_once(MCL_ROOT . 'fw/MclUser.inc.php');
 session_start();
 
 
@@ -69,8 +81,8 @@ $do_signin = false;
 <head>
 <title>Sign In - MCL</title>
 <link href="main.css" rel="stylesheet" type="text/css" />
-<script type="text/javascript" src="jquery-1.6.4.js"></script>
-<script type="text/javascript" src="jquery.watermark.js"></script>
+<script type="text/javascript" src="js/jquery-1.6.4.js"></script>
+<script type="text/javascript" src="js/jquery.watermark.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
 	$('#uid').watermark('Email');
