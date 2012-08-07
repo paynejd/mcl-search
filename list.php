@@ -2,9 +2,16 @@
 /****************************************************************************************************
 ** list.php
 **
-** RETIRED
-**
-** Note that I think this page needs to be retired...
+** Used by search.php to insert, update, and delete Concept Collections. Note that this 
+** functionality is only supported when running in ENHANCED MODE and requires an AJAX 
+** compatible browser.
+** --------------------------------------------------------------------------------------------------
+** POST Parameters:
+**		concepts (required)
+**		action (required)
+**		name
+**		desc
+**		list
 *****************************************************************************************************/
 
 

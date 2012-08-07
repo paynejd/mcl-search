@@ -2,6 +2,8 @@
 /****************************************************************************************************
 ** process_list.php
 **
+** RETIRED
+** 
 ** This script inserts, updates, and deletes Concept Lists to the MCL concept_list table.
 ** Note that this functionality is only supported when running in ENHANCED MODE.
 ** --------------------------------------------------------------------------------------------------
