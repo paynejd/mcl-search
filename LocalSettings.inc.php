@@ -3,7 +3,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors',true);
 
-define ('MCL_ROOT', '/Users/paynejd/Sites/mcl/mcl-search-godaddy/');
+define ('MCL_ROOT', '/Users/paynejd/Sites/mcl/mcl-search-rimu/');
 
 require_once(MCL_ROOT . 'DefaultSettings.inc.php');
 

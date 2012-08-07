@@ -1,7 +1,4 @@
 <?php
-/**
-* Clears the PHP session cache
-*/
 
 session_start();
 

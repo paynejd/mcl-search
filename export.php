@@ -6,7 +6,7 @@ if ($arr_param['export_format'] == 'openmrs-meta-data-zip' &&
 	isset($arr_param['export_values'])) 
 {
 	$url_meta_data_export =
-		'/openmrs/ws/rest/metadatasharing/package/new.form?' . 
+		'/openmrs/module/metadatasharing/getMetadata.form?' . 
 		'key=5b635b8d02812d2e1c97691cd71fc05a&' . 
 		'compress=true&' .
 		'type=org.openmrs.Concept' . 

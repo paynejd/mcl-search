@@ -35,6 +35,7 @@ class ConceptListFactory
 	}
 	
 	/**
+	 * UPDATED
 	 * Set the connection resource used by this object.
 	 */
 	public function setConnection($cxn)
@@ -43,6 +44,7 @@ class ConceptListFactory
 	}
 	
 	/**
+	 * UPDATED
 	 * Get the connection resource used by this object.
 	 */
 	public function getConnection()
@@ -51,6 +53,7 @@ class ConceptListFactory
 	}
 
 	/**
+	 * NOT UPDATED!!!
 	 * Public router function to load a list ID from the name of any list type.
 	 */
 	public function loadConceptListId($name, $cl_type)
@@ -71,6 +74,7 @@ class ConceptListFactory
 	}
 
 	/**
+	 * NOT UPDATED!!
 	 * Private function to load mcl.concept_list.concept_list_id from a list name.
 	 */
 	private function _loadConceptListId($name)
@@ -79,6 +83,7 @@ class ConceptListFactory
 	}
 
 	/**
+	 * NOT UPDATED!!
 	 * Private function to load openmrs.concept_source.source_id from a the map source name.
 	 */
 	private function _loadMapSourceId($name)
@@ -87,6 +92,7 @@ class ConceptListFactory
 	}
 
 	/**
+	 * NOT UPDATED!!
 	 * Public router function to load the definition of any type of concept list. 
 	 * $id parameter can be a numeric list ID or the list name.
 	 */
@@ -117,15 +123,15 @@ class ConceptListFactory
 	}
 
 	/**
+	 * UPDATED: but still needs the description fields added on the database side
 	 * Private function to load a MCL Concept List definition object.
 	 */
 	private function _loadConceptListDefinition($id)
 	{
 		// Load the concept list definition
 		$sql_list = 
-			'select cl.concept_list_id, cl.list_name, cd.dict_id, cd.dict_name, cd.db_name ' .
+			'select cl.concept_list_id, cl.list_name ' .
 			'from mcl.concept_list cl ' . 
-			'left join mcl.concept_dict cd on cd.dict_id = cl.dict_id ' . 
 			'where cl.concept_list_id = ' . $id;
 		$rsc_list = mysql_query($sql_list, $this->getConnection());
 		if (!$rsc_list) {
@@ -141,13 +147,13 @@ class ConceptListFactory
 			$cld->setListId($row['concept_list_id']);
 			$cld->setName($row['list_name']);
 			$cld->setDescription('');
-			$cld->setDictionary($row['dict_id'], $row['dict_name'], $row['db_name']);
 		}
 
 		return $cld;
 	}
 
 	/**
+	 * NOT UPDATED
 	 * Private function to load a map source definition object.
 	 */
 	private function _loadMapSourceDefinition($id)
@@ -179,6 +185,8 @@ class ConceptListFactory
 	}
 
 	/**
+	 * PARTIALLY UPDATED: clm.dict_id fixed, have not addressed MCL_CLTYPE_MAP_SOURCE
+	 * 
 	 * Public function to load a ConceptList object corresponding with the specified 
 	 * list ID, list name, or iConceptListDefinition. $cl_type is ignored if list definition object
 	 * is used, but required if a list ID is used.
@@ -210,14 +218,16 @@ class ConceptListFactory
 	}
 
 	/**
+	 * UPDATED: Supports clm.dict_id  
 	 * Private function to load a MCL concept list.
 	 */
 	private function _loadConceptList($cld)
 	{
 		// Load the concepts
 		$sql_concepts = 
-			'select clm.concept_id ' .
+			'select cd.dict_name, clm.concept_id ' .
 			'from mcl.concept_list_map clm ' . 
+			'left join mcl.concept_dict cd on cd.dict_id = clm.dict_id ' .
 			'where clm.concept_list_id = ' . $cld->getListId() .
 			' order by clm.concept_id';
 		$rsc_concepts = mysql_query($sql_concepts, $this->getConnection());
@@ -229,14 +239,14 @@ class ConceptListFactory
 		// Put the data in to the ConceptList object
 		$cl = new ConceptList($cld);
 		while ($row = mysql_fetch_assoc($rsc_concepts)) {
-			$_id = $row['concept_id'];
-			$cl->addConcept($_id);
+			$cl->addConcept($row['dict_name'], $row['concept_id']);
 		}
 
 		return $cl;
 	}
 
 	/**
+	 * NOT UPDATED
 	 * Private function to load an openmrs map source.
 	 */
 	private function _loadMapSource($cld)
@@ -263,12 +273,14 @@ class ConceptListFactory
 	}
 
 	/**
+	 * NOT UPDATED!! May not need this at all
+	 * 
 	 * Returns an array containing info about each of the Concept Lists in the db.
 	 * Columns returned are:
 	 *  concept_list_id, list_name, dict_id, dict_name, db_name, list_descriptor
 	 * where list_descriptor condenses all these into a single line.
 	 */
-	public function getConceptListsArray() 
+	public function getConceptListsArray()
 	{
 		// get the data
 		$sql_concept_lists = 
@@ -296,6 +308,8 @@ class ConceptListFactory
 	}
 
 	/**
+	 * NOT UPDATED: May not need this at all
+	 * 
 	 * Returns an array containing info about each of the Concept Sources in the db.
 	 * The appropriate database should be set before calling this function.
 	 * Columns returned are:
@@ -329,6 +343,8 @@ class ConceptListFactory
 	}
 
 	/**
+	 * NOT UPDATED: May not need this at all
+	 * 
 	 * Get array of available dictionaries. Returned columns:
 	 *   dict_id, dict_name, db_name, dict_descriptor
 	 * where dict_descriptor combines all of these into a single field,
@@ -363,22 +379,48 @@ class ConceptListFactory
 	}
 
 	/**
+	 * UPDATED
+	 * Return array of dict_db => dict_id
+	 */
+	public function getDictionaryArray()
+	{
+		// Get the dictionary ids
+		$sql_dict_id = 'select dict_id, db_name from mcl.concept_dict where active = 1';
+		if (  !($rsc_dict_id = mysql_query($sql_dict_id, $this->getConnection()))  )  {
+			trigger_error('Unable to query mcl.concept_dict: ' . mysql_error(), E_USER_ERROR);
+		}
+		$arr_dict_id = array();
+		while ($row = mysql_fetch_assoc($rsc_dict_id)) {
+			$arr_dict_id[$row['db_name']] = $row['dict_id'];
+		}
+		return $arr_dict_id;
+	}
+
+	/**
+	 * UPDATED: this works!
+	 * 
 	 * Create a new concept list with the passed name and source concept 
 	 * dictionary. Return the new concept_list_id on success, or false on failure.
+	 * @param ConceptList $cl
+	 * @param MclUser $owner_user
 	 */
-	public function insertConceptList(ConceptList $cl)
+	public function createConceptList(ConceptList $cl)
 	{
 		// Make sure the concept list name is unique
 		if (!$this->isUniqueConceptListName($cl->cld->getName())) {
-			trigger_error('Unable to create list, because concept list name is not unique: <strong>' . $list_name . '</strong>', E_USER_ERROR);
+			trigger_error('Unable to create list, because concept list name already exists: <strong>' . $cl->cld->getName() . '</strong>', E_USER_ERROR);
 		}
+
+		// Get the dictionary ids
+		$arr_dict_id = $this->getDictionaryArray();
 
 		// Insert the list
 		$sql_insert_list = 
-			'insert into mcl.concept_list (list_name) values (' . 
-			"'" . mysql_real_escape_string($cl->cld->getName(), $this->getConnection()) . "')";
-		if (!mysql_query($sql_insert_list, $this->getConnection()) ||
-			!($new_concept_list_id = mysql_insert_id($this->getConnection()))) 
+			'insert into mcl.concept_list (list_name, description) values (' . 
+			"'" . mysql_real_escape_string($cl->cld->getName(), $this->getConnection()) . "', " . 
+			"'" . mysql_real_escape_string($cl->cld->getDescription(), $this->getConnection()) . "')";
+		if (  !mysql_query($sql_insert_list, $this->getConnection())  ||
+			  !($new_concept_list_id = mysql_insert_id($this->getConnection()))  ) 
 		{
 			trigger_error('Unable to insert record into mcl.concept_list: ' . mysql_error());
 			return false;
@@ -388,11 +430,17 @@ class ConceptListFactory
 		if (  $cl->getCount()  &&  $new_concept_list_id  )
 		{
 			// Build the sql statement
-			$arr_concepts = $cl->getArray();
-			$glue = '),(' . $new_concept_list_id . ',';
+			$sql_insert_concepts = ''; 
+			$arr_cl = $cl->getArray();
+			foreach (array_keys($arr_cl) as $dict_db) {
+				foreach ($arr_cl[$dict_db] as $concept_id) {
+					if ($sql_insert_concepts)  $sql_insert_concepts .= ',';
+					$sql_insert_concepts .= '(' . $new_concept_list_id . ',' . $arr_dict_id[$dict_db] . ',' . $concept_id . ')';
+				}
+			}
 			$sql_insert_concepts = 
-				'insert into mcl.concept_list_map (concept_list_id, concept_id) values ' . 
-				'(' . $new_concept_list_id . ',' . implode($glue, $arr_concepts) . ')';
+					'insert into mcl.concept_list_map (concept_list_id, dict_id, concept_id) values ' . 
+					$sql_insert_concepts;
 			if ($this->debug) {
 				echo '<p>Inserting concept ids into list ' . $new_concept_list_id . 
 					':<br />' . $sql_insert_concepts . '</p>';
@@ -407,6 +455,8 @@ class ConceptListFactory
 	}
 
 	/**
+	 * NOT UPDATED: May not need this at all 
+	 *  
 	 * Returns the dict_id of the concept dictionary that matches the 
 	 * passed source_db. Returns null if the dictionary is not found.
 	 */
@@ -427,6 +477,8 @@ class ConceptListFactory
 	}
 
 	/**
+	 * NOT UPDATED!!
+	 * 
 	 * Return whether the passed concept list name is unique. 
 	 * This function is case insensitive.
 	 */
@@ -447,6 +499,8 @@ class ConceptListFactory
 	}
 
 	/**
+	 * NOT UPDATED!
+	 * 
 	 * Delete the concept list associated with the passed ID.
 	 */
 	public function deleteConceptList($concept_list_id)
@@ -476,6 +530,102 @@ class ConceptListFactory
 	}
 
 	/**
+	 * UPDATED!
+	 * 
+	 * Add concepts contained in the ConceptList object to the list defined in ConceptListDefinition.
+	 * @param ConceptListDefinition $cld Definition of concept list to which concepts will be added
+	 * @param ConceptList $cl Concepts to add  
+	 */
+	public function addConceptsToList(ConceptListDefinition $cld, ConceptList $cl)
+	{
+		// Get out of here if empty
+		if (!$cl->getCount()) return true;
+		
+		// Load the concept list with data currently in db
+		$cl_old = $this->loadConceptList($cld);
+
+		// Get the dictionary ids
+		$arr_dict_id = $this->getDictionaryArray();
+
+		// Identify which concepts are not already in the dictionary
+		$arr_concept_to_add = array();
+		$arr_concepts_new = $cl->getArray();
+		foreach (array_keys($arr_concepts_new) as $dict_db) {
+			$dict_id = $arr_dict_id[$dict_db];
+			foreach ($arr_concepts_new[$dict_db] as $concept_id) {
+				if (!$cl_old->isMember($dict_db, $concept_id)) {
+					$arr_concept_to_add[] = array(
+							'dict_db'     =>  $dict_db     ,
+							'dict_id'     =>  $dict_id     , 
+							'concept_id'  =>  $concept_id  ,
+						);
+				}
+			}
+		}
+
+		// Build sql to insert new concepts
+		$sql_insert = '';
+		$concept_list_id = $cld->getListId();
+		foreach ($arr_concept_to_add as $c) {
+			if ($sql_insert) $sql_insert .= ',';
+			$sql_insert .= '(' . $concept_list_id . ',' . $c['dict_id'] . ',' . $c['concept_id'] . ')';
+		}
+		$sql_insert = 
+				'insert into mcl.concept_list_map (concept_list_id, dict_id, concept_id) values ' . 
+				$sql_insert;
+
+		// Execute
+		if (!mysql_query($sql_insert, $this->getConnection())) {
+			trigger_error('Cannot add concepts to list ' . $concept_list_id . 
+				': ' . mysql_error(), E_USER_ERROR);
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * UPDATED!
+	 * 
+	 * Remove concepts contained in the ConceptList object from the list defined in ConceptListDefinition.
+	 * @param ConceptListDefinition $cld Definition of concept list from which concepts will be removed
+	 * @param ConceptList $cl Concepts to remove
+	 */
+	public function removeConceptsFromList(ConceptListDefinition $cld, ConceptList $cl)
+	{
+		// Get out of here if empty
+		if (!$cl->getCount()) return true;
+
+		// Get the dictionary ids
+		$arr_dict_id = $this->getDictionaryArray();
+
+		// Build sql to remove concepts from list
+		$sql_delete = '';
+		$arr_concepts_remove = $cl->getArray();
+		foreach (array_keys($arr_concepts_remove) as $dict_db) {
+			$dict_id = $arr_dict_id[$dict_db];
+			foreach ($arr_concepts_remove[$dict_db] as $concept_id) {
+				if ($sql_delete) $sql_delete .= ' OR ';
+				$sql_delete .= '(dict_id=' . $dict_id . ' and concept_id=' . $concept_id . ')';
+			}
+		}
+		$sql_delete = 
+				'delete from mcl.concept_list_map where concept_list_id = ' . 
+				$cld->getListId() . ' AND ( ' . $sql_delete . ' )';
+
+		// Execute
+		if (!mysql_query($sql_delete, $this->getConnection())) {
+			trigger_error('Cannot remove concepts from list ' . $cld->getListId() . 
+				': ' . mysql_error(), E_USER_ERROR);
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * NOT UPDATED
+	 * 
 	 * Update the concept list associated with the passed ID.
 	 */
 	public function updateConceptList($concept_list_id, $list_name, $source_db, $csv_concept_id)

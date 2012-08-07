@@ -18,7 +18,6 @@ session_start();
 
 require_once('LocalSettings.inc.php');
 require_once('ConceptListFactory.inc.php');
-require_once('ConceptList.inc.php');
 require_once('search_common.inc.php');
 
 // Set debug status

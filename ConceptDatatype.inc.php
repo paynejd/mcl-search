@@ -7,7 +7,7 @@ class ConceptDatatype
 	public $description          =  null;
 	public $hl7_abbreviation     =  null;
 	public $uuid                 =  null;
-	
+
 	public $css_dict             =  null;
 	
 	public function __construct($concept_datatype_id = null, $name = null,
@@ -22,7 +22,7 @@ class ConceptDatatype
 	
 	public function setSourceDictionary(ConceptSearchSource $css_dict)
 	{
-		$this->css_dict = $css_dict;
+		$this->css_dict  =  $css_dict;
 	}
 
 	public function getSourceDictionary()

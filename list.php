@@ -10,29 +10,25 @@ require_once(MCL_ROOT . 'ConceptListDefinition.inc.php');
 		$arr_concepts = json_decode($_POST['concepts']);
 	}
 	$action = $_POST['action'];
-	$list_name = '';
-	$list_description = '';
-	if ($action == 'new') {
-		$list_name = $_POST['name'];
-		//$list_description = $_POST['desc'];	
-	}
 
 // debug stuff
+/*
 	echo '<pre>',  var_dump($_POST), '</pre>';
 	$i = 0;
 	echo '<table border="1">';
-	echo '<tr><th>#</th><th>dict_id</th><th>csrg_id</th><th>concept_id</th><th>name</th></tr>';
+	echo '<tr><th>#</th><th>dict_db</th><th>csrg_id</th><th>concept_id</th><th>name</th></tr>';
 	foreach ($arr_concepts as $c) 
 	{
 		$i++;
 		echo '<tr><td>' . $i . '</td>';
-		echo '<td>' . $c -> dict_id . '</td>';
+		echo '<td>' . $c -> dict_db . '</td>';
 		echo '<td>' . $c -> csrg_id . '</td>';
 		echo '<td>' . $c -> concept_id . '</td>';
 		echo '<td>' . $c -> name . '</td>';
 		echo '</tr>';
 	}
 	echo '</table>';
+ */
 
 // open db connection
 	$cxn = mysql_connect($mcl_db_host, $mcl_db_uid, $mcl_db_pwd);
@@ -40,43 +36,87 @@ require_once(MCL_ROOT . 'ConceptListDefinition.inc.php');
 		die('Could not connect to database: ' . mysql_error());
 	}
 	mysql_select_db($mcl_enhanced_db_name);
+	$clf = new ConceptListFactory();
+	$clf->setConnection($cxn);
 
 
 // New list
 if ($_POST['action'] == 'new') 
 {
+	$list_name  =  $_POST['name'];
+	$list_desc  =  $_POST['desc'];
+
 	// Create the new list definition
 	$cld = new ConceptListDefinition();
 	$cld->setName($list_name);
-	$cld->setDescription($list_description);
+	$cld->setDescription($list_desc);
 
 	// create the new list
 	$cl = new ConceptList($cld);
 	foreach ($arr_concepts as $c) {
-		$cl->addConcept($c->concept_id);
-		// TODO: $cl->addConcept($c->dict_id, $c->concept_id);
+		$cl->addConcept($c->dict_db, $c->concept_id);
 	}
 
 	// Commit to database
-	$clf = new ConceptListFactory();
-	$clf->setConnection($cxn);
-	if (!$clf->insertConceptList($cl)) {
+	if (!$clf->createConceptList($cl)) {
 		trigger_error('Could not create list', E_USER_ERROR);
 	} else {
-		echo 'successfully created list!';
+		echo 'Successfully created list!';
 	}
-} 
+}
 
 // Add to list
 elseif ($action == 'add')
 {
-	// 
+	// Extract the list ID
+	$matches = array();
+	if (!preg_match('~list\((\d+)\)~', $_POST['list'], $matches)) {
+		echo 'Select a list!';
+		exit();
+	}
+	$list_id = $matches[1];
+	$cld = new ConceptListDefinition();
+	$cld->setListId($list_id);
+
+	// Create the list with concepts to add
+	$cl = new ConceptList(null);
+	foreach ($arr_concepts as $c) {
+		$cl->addConcept($c->dict_db, $c->concept_id);
+	}	
+
+	// Update the list
+	if ($clf->addConceptsToList($cld, $cl)) {
+		echo 'Concepts added to list!';
+	} else {
+		echo 'An error occurred adding concepts to list.';
+	}
 }
 
 // Remove from list
 elseif ($action == 'remove')
 {
-	//
+	// Extract the list ID
+	$matches = array();
+	if (!preg_match('~list\((\d+)\)~', $_POST['list'], $matches)) {
+		echo 'Select a list!';
+		exit();
+	}
+	$list_id = $matches[1];
+	$cld = new ConceptListDefinition();
+	$cld->setListId($list_id);
+
+	// Create the list with concepts to add
+	$cl = new ConceptList(null);
+	foreach ($arr_concepts as $c) {
+		$cl->addConcept($c->dict_db, $c->concept_id);
+	}
+
+	// Update the list
+	if ($clf->removeConceptsFromList($cld, $cl)) {
+		echo 'Concepts removed from list!';
+	} else {
+		echo 'An error occurred removing concepts from list.';
+	}
 }
 
 else {

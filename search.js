@@ -1,3 +1,6 @@
+/**
+ *
+ */
 function toggleElementVisibility(element_id) {
 	e = document.getElementById(element_id);
 	if (e.style.display == 'none') {
@@ -35,7 +38,7 @@ function deselectAllConcepts() {
 function csrgCheckboxClick(event, checkbox) {
 	newvalue = checkbox.checked;
 	csrg_i = checkbox.id.split('_')[2];
-	$('input[type="checkbox"][id^="concept_checkbox_' + csrg_i + '_"]').each(function() {
+	$('input[type="checkbox"][id^="concept_checkbox|' + csrg_i + '|"]').each(function() {
 		if (!arr_hidden_checkboxes.hasOwnProperty('#' + this.id)) this.checked = newvalue;
 	});
 	event.stopPropagation();
@@ -47,7 +50,7 @@ function updateAllSearchGroupCheckboxes() {
 }
 function updateSearchGroupCheckbox(group_id) {
 	csrg_checkbox_value = null;
-	$('input[id^="concept_checkbox_' + group_id + '_"]').each(function(index) {
+	$('input[id^="concept_checkbox|' + group_id + '|"]').each(function(index) {
 		// skip if hidden row
 		if (arr_hidden_checkboxes.hasOwnProperty('#' + this.id)) return true;
 
@@ -229,18 +232,30 @@ function submitExport()
 /**
  * Concept Toolbar Actions
  */
+function buildConceptListSelector(el_id) {
+	$('#' + el_id).empty();
+	$('#' + el_id).append(
+        $('<option></option>').val('').html('[Select Concept List]')
+	);
+	$('#source option[value^="list("]').each(function(index) {
+	    $('#' + el_id).append(
+	        $('<option></option>').val(this.value).html(this.innerHTML)
+	    );
+	});
+}
 function getSelectedConcepts() {
 	/* Returns 2d array of concepts with dictionary ID, CSRG ID, concept ID, and concept name. */ 
 	var arr_concepts = {};
-	$('input[type="checkbox"][id^="concept_checkbox_"]').each(function(index) {
+	$('input[type="checkbox"][id^="concept_checkbox|"]').each(function(index) {
 		if (this.checked) {
-			csrg_id = this.id.split('_')[2];
-			dict_id = this.id.split('_')[3];
-			c_id = this.id.split('_')[4];
-			el_id = csrg_id + '_' + dict_id + '_' + c_id;
-			c_name = $('#tr_concept_' + el_id + ' .td_concept_name span.concept_name').text();
+			csrg_id = this.id.split('|')[1];
+			dict_db = this.id.split('|')[2];
+			c_id    = this.id.split('|')[3];
+			el_id         = csrg_id + '|' + dict_db + '|' + c_id;
+			escaped_el_id = csrg_id + '\\|' + dict_db + '\\|' + c_id;
+			c_name  = $('#tr_concept\\|' + escaped_el_id + ' .td_concept_name span.concept_name').text();
 			if (!arr_concepts[el_id]) {
-				arr_concepts[el_id] = { dict_id:dict_id, csrg_id:csrg_id, concept_id:c_id, name:c_name };
+				arr_concepts[el_id] = { dict_db:dict_db, csrg_id:csrg_id, concept_id:c_id, name:c_name };
 			}
 		}
 	});
@@ -250,14 +265,14 @@ function getUniqueConcepts(arr_concepts) {
 	/* Returns array (same structure as above) of unique concepts only */
 	var arr_unique_concepts = {};
 	for (var i in arr_concepts) {
-		arr_unique_concepts[arr_concepts[i].dict_id + '_' + arr_concepts[i].concept_id] = arr_concepts[i];
+		arr_unique_concepts[arr_concepts[i].dict_db + '|' + arr_concepts[i].concept_id] = arr_concepts[i];
 	}
 	return arr_unique_concepts;
 }
 function getHtmlConceptTable(arr_concepts) {
 	var html_table = '<table cellspacing="1"><thead><tr><th>Dictionary</th><th width="1">ID</th><th>Concept Name</th></thead><tbody>';
 	for (var i in arr_concepts) {
-		html_table += '<tr><td>' + arr_concepts[i].dict_id + '</td><td>' + 
+		html_table += '<tr><td>' + arr_concepts[i].dict_db + '</td><td>' + 
 				arr_concepts[i].concept_id + '</td><td>' + arr_concepts[i].name + '</td></tr>';
 	}
 	html_table += '</tbody></table>';
@@ -276,6 +291,7 @@ function newConceptList() {
 function addConceptsToList() {
 	var arr_concepts = getSelectedConcepts();
 	var arr_unique_concepts = getUniqueConcepts(arr_concepts);
+	buildConceptListSelector('addcl_list');
 	var count = 0;
 	for (k in arr_unique_concepts) if (arr_unique_concepts.hasOwnProperty(k)) count++;
 	$('#addcl_count').html(count);
@@ -286,6 +302,7 @@ function addConceptsToList() {
 function removeConceptsFromList() {
 	var arr_concepts = getSelectedConcepts();
 	var arr_unique_concepts = getUniqueConcepts(arr_concepts);
+	buildConceptListSelector('removecl_list');
 	var count = 0;
 	for (k in arr_unique_concepts) if (arr_unique_concepts.hasOwnProperty(k)) count++;
 	$('#removecl_count').html(count);
@@ -322,23 +339,42 @@ function unhideAllConcepts() {
 }
 
 
+
+
 var $dialog_new;
 var $dialog_add;
 var $dialog_remove;
 var $dialog_comment;
+var $dialog_confirm;
+/*
 function saveList() {
 	$.ajaxSetup ({ cache: false });
 	var ajax_load = '<img src="images/load.gif" alt="loading..." />';
 	var ajax_url  = 'list.php';
-
 }
+*/
 $(document).ready(function() {
+	$('#uid').watermark('Email');
+	$('#pwd').watermark('Password');
+	$('#q_textinput').watermark('Search');
+	$('#q_textarea').watermark('Search');
 	var ajax_load = '<div style="text-align:center;margin:0 20px;"><img src="images/load.gif" alt="Loading..." /></div>';
+	$dialog_confirm = $('<div id="confirm_dialog_text"></div>')
+			.dialog({
+					autoOpen: false,
+					title: '',
+					modal: true,
+					resizable: false,
+					buttons: {
+						'OK': function() { $(this).dialog('close'); }
+					}
+			});
 	$dialog_new = $('<div></div>')
 			.html(
 					'<p><label for="newcl_name">Concept List Name:</label><br />' +
 					'<input type="hidden" id="newcl_json" />' +
-					'<input style="width:415px;" type="text" id="newcl_name" /></p>' +
+					'<input style="width:415px;" type="text" id="newcl_name" /><br/>Description:' +
+					'<textarea id="newcl_desc" style="width:415px;height:40px;"></textarea></p>' +
 					'<div>Preview:<span style="float:right;"><span id="newcl_count">0</span> unique concept(s) selected</span></div>' +
 					'<div id="newcl_preview" class="concept_preview"></div>' +
 					'<div id="newcl_save"></div>'
@@ -352,12 +388,14 @@ $(document).ready(function() {
 					buttons: {
 						'Cancel': function() { $(this).dialog('close'); },
 						'Create List': function() { 
-							$('#newcl_save').html(ajax_load).load('list.php', { 
+							$('#confirm_dialog_text').html(ajax_load).load('list.php', { 
 								action:'new', 
 								name:$('#newcl_name').val(),
+								desc:$('#newcl_desc').val(),
 								concepts:$('#newcl_json').val()
 							});
-							//$(this).dialog('close');
+							$(this).dialog('close');
+							$dialog_confirm.dialog('open');
 						}
 					}
 			});
@@ -381,12 +419,13 @@ $(document).ready(function() {
 					buttons: {
 						'Cancel': function() { $(this).dialog('close'); },
 						'Add Concepts': function() { 
-							$('#addcl_save').html(ajax_load).load('list.php', { 
+							$('#confirm_dialog_text').html(ajax_load).load('list.php', { 
 								action:'add', 
 								list:$('#addcl_list').val(),
 								concepts:$('#addcl_json').val()
 							});
-							//$(this).dialog('close');
+							$(this).dialog('close');
+							$dialog_confirm.dialog('open');
 						}
 					}
 			});
@@ -410,12 +449,13 @@ $(document).ready(function() {
 					buttons: {
 						'Cancel': function() { $(this).dialog('close'); },
 						'Remove Concepts': function() {
-							$('#removecl_save').html(ajax_load).load('list.php', {
+							$('#confirm_dialog_text').html(ajax_load).load('list.php', {
 								action:'remove', 
 								list:$('#removecl_list').val(),
 								concepts:$('#removecl_json').val()
 							});
-							//$(this).dialog('close');
+							$(this).dialog('close');
+							$dialog_confirm.dialog('open');
 						}
 					}
 			});

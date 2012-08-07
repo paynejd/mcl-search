@@ -29,6 +29,40 @@ span.note {
 	box-shadow: 0px 0px 8px #BBC;
 }
 
+/* Mini Sign-in */
+#uid { font-size:8pt;width:100px;margin:0; }
+#pwd { font-size:8pt;width:100px;margin:0; }
+#btnsignin { font-size:8pt; }
+//#btnsignin { font-size:8pt;border:1px solid #666;background:#eee;cursor:pointer; }
+
+/* Search */
+#btnSubmitSearch { font-size:8pt; }
+//#btnSubmitSearch { font-size:8pt;border:1px solid #999;background:#eee;cursor:pointer;padding-left:15px;padding-right:15px;font-weight:bold;margin:0; }
+
+/* Sign-in Page */
+#signin {
+	margin-top:80px;
+	margin-left:auto;
+	margin-right:auto;
+	background-color:#cdf;
+	width:250px;
+	padding: 20px 60px;
+}
+	#signin td {
+		font-size: 10pt;
+		padding: 3px 9px;
+	}
+	#signin input[type="text"],
+	#signin input[type="password"] 
+	{
+		width:150px;
+	}
+	#signin .loginerr {
+		color: Red;
+		text-align: center;
+		padding-bottom:12px;
+	}
+
 
 /* Toolbar */
 div#divToolbar {
@@ -36,6 +70,7 @@ div#divToolbar {
 	padding: 4px 8px;
 	font-family: Arial, Sans-Serif;
 	font-size: 10pt;
+	background-color: #eee;
 }
 
 
@@ -126,6 +161,7 @@ div#divExternalResults {
 div#divSearch {
 	font-family: Arial;
 	font-size: 10pt;
+	margin-top:6px;
 	padding: 8px 14px;
 	margin-bottom:5px;
 }
@@ -474,10 +510,7 @@ table#tblResults table.tbl_numeric_range {
 		font-size: 8pt;
 		height: 22px;
 	}
-	#btnSubmitSearch, #btnSubmitList {
-		margin:0;
-		font-size: 9pt;
-	}
+
 
 
 /* Concept Search Results Toolbar */

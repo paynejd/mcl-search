@@ -20,19 +20,25 @@
 set_time_limit(0);
 error_reporting(-1);
 ini_set('display_errors',1);
-session_start();
-
 
 require_once('LocalSettings.inc.php');
 require_once(MCL_ROOT . 'search_common.inc.php');
 require_once(MCL_ROOT . 'ConceptSearch.inc.php');
 require_once(MCL_ROOT . 'ConceptSearchFactory.inc.php');
 require_once(MCL_ROOT . 'ConceptSearchResultsRenderer.inc.php');
-require_once(MCL_ROOT . 'ConceptListFactory.inc.php');
 require_once(MCL_ROOT . 'ConceptSearchSourceFactory.inc.php');
 require_once(MCL_ROOT . 'ConceptDatatypeCollection.inc.php');
 require_once(MCL_ROOT . 'ConceptClassCollection.inc.php');
+require_once(MCL_ROOT . 'MclUser.inc.php');
 
+session_start();
+
+
+// Get the user
+	$user = null;
+	if (MclUser::isLoggedIn()) {
+		$user = MclUser::getLoggedInUser();
+	}
 
 // Apply default page parameters and merge POST and GET page parameters
 	$arr_param = array_merge($arr_search_attr_default, $_POST, $_GET);
@@ -74,7 +80,7 @@ require_once(MCL_ROOT . 'ConceptClassCollection.inc.php');
 				$mcl_db_uid, 
 				$mcl_db_pwd
 			);
-	} 
+	}
 	else 
 	{
 		trigger_error('Invalid value for $mcl_mode in LocalSettings.inc.php: ' . $mcl_mode, E_USER_ERROR);
@@ -146,14 +152,14 @@ require_once(MCL_ROOT . 'ConceptClassCollection.inc.php');
  ***************************************************************************/
 
 // Load concept classes and datatypes from all dictionaries
-	$coll_class              =   $cssf->loadAllConceptClasses   (   $coll_source   );
-	$coll_datatype           =   $cssf->loadAllConceptDatatypes (   $coll_source   );
+	$coll_class              =   $cssf->loadAllConceptClasses  (   $coll_source   );
+	$coll_datatype           =   $cssf->loadAllConceptDatatypes(   $coll_source   );
 	$coll_class   ->setDefaultDictionary(  $css_default_source  );
 	$coll_datatype->setDefaultDictionary(  $css_default_source  );
 
 // Get selected concept classes and datatypes
-	$coll_selected_class     =  $coll_class   ->getClasses   (  $arr_param['class']     );
-	$coll_selected_datatype  =  $coll_datatype->getDatatypes (  $arr_param['datatype']  );
+	$coll_selected_class     =  $coll_class   ->getClasses  (  $arr_param['class']     );
+	$coll_selected_datatype  =  $coll_datatype->getDatatypes(  $arr_param['datatype']  );
 
 // Get Html Checklist Arrays for classes and datatypes
 	$arr_concept_classes     =  $coll_class   ->getHtmlChecklistArray(  $coll_selected_class     );
@@ -165,12 +171,12 @@ require_once(MCL_ROOT . 'ConceptClassCollection.inc.php');
  ***************************************************************************/
 
 // Set whether search box starts expanded or minimized
-	if (strpos($full_search_query, "\n") === false) {
+	if (strpos($full_search_query, "\n") === false)  {
 		// minimized
 		$style_q_textarea    =  'display:none;'  ;
 		$style_q_textinput   =  ''               ;
 		$search_toggle_text  =  '+'              ;
-	} else {
+	}  else  {
 		// expanded
 		$style_q_textarea    =  ''               ;
 		$style_q_textinput   =  'display:none;'  ;
@@ -179,11 +185,11 @@ require_once(MCL_ROOT . 'ConceptClassCollection.inc.php');
 
 // Determine if using any advanced settings
 	$is_advanced_search = false;
-	if (  $arr_param[  'debug'            ]  || 
-		  $arr_param[  'verbose'          ]  || 
-		  $arr_param[  'datatype'         ]  || 
-		  $arr_param[  'class'            ]  || 
-		  $arr_param[  'retired'          ]  ) 
+	if (  $arr_param[  'debug'     ]  || 
+		  $arr_param[  'verbose'   ]  || 
+		  $arr_param[  'datatype'  ]  || 
+		  $arr_param[  'class'     ]  || 
+		  $arr_param[  'retired'   ]  ) 
 	{
 		$is_advanced_search = true;
 	}
@@ -238,9 +244,9 @@ if (  $full_search_query  )
 			}
 
 			// Experimental features
-			if (  isset(  $arr_param[  'show_checkbox'  ]  )  ) {
+			//if (  isset(  $arr_param[  'show_checkbox'  ]  )  ) {
 				$csrr->show_checkbox = true;
-			}
+			//}
 			if (  isset(  $arr_param[  'show_icons'     ]  )  )  {
 				$csrr->show_icons = true;
 			}
@@ -277,6 +283,7 @@ if (  $full_search_query  )
 <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/base/jquery-ui.css">
 <script type="text/javascript" src="jquery-1.6.4.js"></script>
 <script type="text/javascript" src="jquery.json-2.3.min.js"></script>
+<script type="text/javascript" src="jquery.watermark.js"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
 <script type="text/javascript" src="search.js"></script>
 <script type="text/javascript">
@@ -292,9 +299,24 @@ if (  $full_search_query  )
 </script>
 </head>
 <body>
-<div id="divToolbar">
-	<a href="/">Home</a>&nbsp;&nbsp;&nbsp;
-	<strong>Search</strong>&nbsp;&nbsp;&nbsp;
+<div id="divToolbar" style="height:20px;">
+	<div id="menu" style="float:left;width:200px;padding:2px;">
+		<a href="/">Home</a>&nbsp;&nbsp;&nbsp;
+		<strong>Search</strong>&nbsp;&nbsp;&nbsp;
+	</div>
+<?php if ($user) { ?>
+	<div id="user" style="float:right;padding:2px;">
+		<strong><?php echo $user->uid; ?></strong>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="signout.php">Sign Out</a>
+	</div>
+<?php  } else {  ?>
+	<div id="signin_mini" style="float:right;">
+		<form id="form_user" action="signin.php" method="post">
+			<input type="text" id="uid" name="uid" />
+			<input type="password" id="pwd" name="pwd" />
+			<input type="submit" id="btnsignin" value="Sign In" />&nbsp;&nbsp;|&nbsp;&nbsp;<a href="signup.html">Sign Up</a>
+		</form>
+	</div>
+<?php } ?>
 </div>
 <div id="divSearch">
 	<img id="mcl-search-logo" src="images/mcl-search-logo.png" width="172" height="34" style="float:left;margin-top:4px;margin-right:20px;" />
@@ -400,7 +422,7 @@ if (  $full_search_query  )
 			</tbody>
 
 			<?php if ($enable_search_results_export) { ?>
-			
+
 			<tbody id="tbody_search_export" style="display:none;">
 				<tr>
 					<td colspan="2" style="padding:8px;background-color:#eee;border:1px solid #ccc;border-top:none;">
@@ -414,7 +436,7 @@ if (  $full_search_query  )
 						<label for="export_format">Format:</label>&nbsp;
 						<select id="export_format">
 							<?php if ($enable_meta_data_export) { ?>
-								<option value="openmrs-meta-data-zip">OpenMRS Meta-Data Package</option>
+								<option value="openmrs-meta-data-zip">OpenMRS Meta-Data Package (v1.6.3)</option>
 							<?php } ?>
 						</select>
 						<input style="float:right;" id="btnSubmitExport" type="submit" value="Export" onclick="return submitExport();" />

@@ -349,7 +349,7 @@ END;
 		} else {
 			$class_name  =  'row2';
 		}
-		echo "\n" . '<tr id="tr_concept_' . $group_i . '_' . $c->css_dict->dict_id . '_' . $c->concept_id . '" class="' . $class_name . '">';
+		echo "\n" . '<tr id="tr_concept|' . $group_i . '|' . $c->css_dict->dict_db . '|' . $c->concept_id . '" class="' . $class_name . '">';
 	}
 
 	/**
@@ -377,16 +377,16 @@ END;
 	 */
 	protected function _renderColumn_Checkbox(ConceptSearchResultsGroup $csrg, Concept $c, $group_i, $concept_i)
 	{
-		$key = $group_i . '_' . $c->css_dict->dict_id . '_' . $c->concept_id;
+		$key = $group_i . '|' . $c->css_dict->dict_db . '|' . $c->concept_id;
 		echo '<td class="col_check">';
-		echo '<input type="checkbox" name="concept[' . $group_i . '][' . $c->css_dict->dict_id . '][' . $c->concept_id . ']" ' . 
-				'id="concept_checkbox_' . $key . '" value="' . $c->css_dict->dict_id . '_' . $c->concept_id . '" onclick="updateSearchGroupCheckbox(' . $group_i . ');" />';
+		echo '<input type="checkbox" name="concept[' . $group_i . '][' . $c->css_dict->dict_db . '][' . $c->concept_id . ']" ' . 
+				'id="concept_checkbox|' . $key . '" value="' . $key . '" onclick="updateSearchGroupCheckbox(' . $group_i . ');" />';
 		echo '</td>';
 	}
 
 	protected function _renderColumn_Icons(ConceptSearchResultsGroup $csrg, Concept $c, $group_i, $concept_i)
 	{
-		$js_concept_key = $c->css_dict->dict_db . ':' . $c->concept_id;
+		$js_concept_key = $c->css_dict->dict_db . '|' . $c->concept_id;
 		echo '<td class="col_icon">';
 
 		// Comment
@@ -407,7 +407,7 @@ END;
 
 		echo '<div class="content">';
 
-		// Get the search terms		
+		// Get the search terms
 		$arr_term_type = array(
 				MCL_SEARCH_TERM_TYPE_MAP_CODE,
 			);
@@ -509,9 +509,9 @@ END;
 		echo '<table class="tblConceptHeader" cellpadding="0" cellspacing="1">' . "\n\t\t<tr>";
 
 		// Concept ID
-		$concept_key = $c->css_dict->dict_id . '_' . $group_i . '_' . $c->concept_id;
+		$concept_key = $group_i . '|' . $c->css_dict->dict_db . '|' . $c->concept_id;
 		echo '<td class="td_concept_id" nowrap="nowrap">';
-		echo '<a id="concept_id_' . $concept_key . '" href="' . 
+		echo '<a id="concept_id|' . $concept_key . '" href="' . 
 			$this->getSearchUrl('id:' . $c->concept_id, array('source'=>$c->css_dict->dict_db)) . 
 			'">' . $c->concept_id . '</a>&nbsp;-&nbsp;</td>' . "\n\t\t";
 		echo '<td class="td_concept_name">';
@@ -543,7 +543,7 @@ END;
 
 		// Dictionary
 		echo '<div style="margin-top:4px;"><em>Dictionary:</em> ';
-		echo '<span class="mcl_dict_color_' . $c->css_dict->dict_id . '">';
+		echo '<span class="span_concept_dictionary mcl_dict_color_' . $c->css_dict->dict_id . '">';
 		echo $c->css_dict->dict_name . ' (' . $c->css_dict->dict_db . ')';
 		echo '</span></div>';
 

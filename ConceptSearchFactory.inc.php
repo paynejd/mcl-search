@@ -160,6 +160,7 @@ class ConceptSearchFactory
 
 		// Iterate through ConceptSearchGroup objects, perform base query and
 		// create the concepts for each
+		//var_dump($cs);
 		foreach (  array_keys($cs->arr_search_group) as $group_key  ) 
 		{
 			$group_i++;
@@ -1328,11 +1329,12 @@ class ConceptSearchFactory
 	 */
 	private function _buildSqlFromConceptSearchGroup(ConceptSearch $cs, ConceptSearchGroup $csg)
 	{
-		// return blank sql string if no search terms
-		if (  $csg->isEmpty()  ) return '';
+		$coll_sql     =   new ConceptSearchSqlCollection($csg);
+
+		// Just return if no sql
+		if (  $csg->isEmpty()  ) return $coll_sql;
 
 		// Create SQL for each of the sources for this search group
-		$coll_sql     =   new ConceptSearchSqlCollection($csg);
 		$coll_source  =   $this->getSearchGroupSources($cs, $csg);
 		$group_i      =   0;
 		foreach ($coll_source->getAllSources() as $key => $css) 

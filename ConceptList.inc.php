@@ -11,7 +11,8 @@ class ConceptList
 	public $cld = null;
 
 	/**
-	 * Array of concept ids.
+	 * Array of concept ids grouped by dictionary ID.
+	 *    [dict_id][concept_id] = <concept_id>
 	 */
 	private $arr_concept_id = null;
 
@@ -19,8 +20,7 @@ class ConceptList
 	/**
 	 * Constructor
 	 */
-	public function __construct($cld)
-	{
+	public function __construct($cld) {
 		$this->cld             =  $cld;
 		$this->arr_concept_id  =  array();
 	}
@@ -35,40 +35,43 @@ class ConceptList
 	/**
 	 * Add a concept_id to the list
 	 */
-	public function addConcept($concept_id)
-	{
-		$this->arr_concept_id[$concept_id] = $concept_id;
+	public function addConcept($dict_db, $concept_id) {
+		$this->arr_concept_id[$dict_db][$concept_id]  =  $concept_id;
 	}
 
 	/**
 	 * True if the passed concept_id is a member of this list.
 	 */
-	public function isMember($concept_id)
-	{
-		return isset($this->arr_concept_id[$concept_id]);
+	public function isMember($dict_db, $concept_id) {
+		return isset($this->arr_concept_id[$dict_db][$concept_id]);
 	}
 
 	/**
 	 * Returns the entire array of concept ids.
 	 */
-	public function getArray()
-	{
+	public function getArray() {
 		return $this->arr_concept_id;
 	}
-	
+
 	/**
-	 * Returns a comma-separated string of concept ids.
+	 * Returns a comma-separated string of dict_db:concept_id.
 	 */
-	public function getCsv()
-	{
-		return implode(',', $this->arr_concept_id);
+	public function getCsv() {
+		$csv = '';
+		foreach (array_keys($this->arr_concept_id) as $dict_db) {
+			$csv .= $dict_db . ':' . implode(',' . $dict_db . ':', $this->arr_concept_id[$dict_db]);
+		}
+		return $csv;
 	}
-	
+
 	/**
 	 * Returns the number of concept_ids in the list.
 	 */
-	public function getCount()
-	{
-		return count($this->arr_concept_id);
+	public function getCount() {
+		$c = 0;
+		foreach (array_keys($this->arr_concept_id) as $dict_db) {
+			$c += count($this->arr_concept_id[$dict_db]);
+		}
+		return $c;
 	}
 }

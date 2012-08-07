@@ -86,14 +86,20 @@ define(  'MCL_UUID_LENGTH',  36  );
 /**
  * concept source types
  */
-define(  'MCL_SOURCE_TYPE_LIST'        ,  1    );
-define(  'MCL_SOURCE_TYPE_DICTIONARY'  ,  2    );
-define(  'MCL_SOURCE_TYPE_MAP'         ,  4    );
-define(  'MCL_SOURCE_TYPE_ALL'         ,  7    );
+define(  'MCL_SOURCE_TYPE_LIST'         ,     1  );
+define(  'MCL_SOURCE_TYPE_DICTIONARY'   ,     2  );
+define(  'MCL_SOURCE_TYPE_MAP'          ,     4  );
+define(  'MCL_SOURCE_TYPE_ALL'          ,     7  );
 
-define(  'MCL_SOURCE_DEFAULT_DICT_ID'  ,  0    );
-define(  'MCL_SOURCE_SEARCH_ALL'       ,  100  );
+define(  'MCL_SOURCE_DEFAULT_DICT_ID'   ,     0  );
+define(  'MCL_SOURCE_SEARCH_ALL'        ,   100  );
 
+/**
+ * Sign-In Results
+ */
+define(  'MCL_AUTH_SUCCESS'             ,   100  );
+define(  'MCL_AUTH_INVALID_FORMAT'      ,  -100  );
+define(  'MCL_AUTH_INVALID_UID_OR_PWD'  ,  -200  );
 
 /**
  * Used to bump sorting relevancy of exact matches.

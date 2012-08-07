@@ -161,7 +161,7 @@ class ConceptSearchSourceFactory
 		// Build the sql
 		$sql_cs = 
 			'select cs.concept_source_id, cs.name, cs.description, cs.retired ' .
-			'from concept_source cs ' . 
+			'from ' . $css_dict->dict_db . '.concept_source cs ' . 
 			'order by cs.name';
 		if (  $this->debug  ) {
 			echo '<p><b>Loading map source definitions for ' . $css_dict->dict_db . ':</b><br> ' . $sql_cs . '</p>';
