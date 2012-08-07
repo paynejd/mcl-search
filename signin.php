@@ -102,7 +102,7 @@ $(document).ready(function() {
 <div id="content">
 	<form action="signin.php" method="post">
 	<div id="signin" class="shadow">
-		<h2>MCL Sign In</h2>
+		<h2>MCL:Search Sign In</h2>
 <?php
 if (!is_null($result)) {
 	echo '<div class="loginerr">Invalid email and password combination!</div>';
@@ -115,7 +115,7 @@ if (!is_null($result)) {
 				<td><input type="password" name="pwd" id="pwd" /></td></tr>
 			<tr><td></td>
 				<td><input type="submit" value="Sign In" />
-					<a style="float:right;" href="signup.html">Sign Up</a>
+					<a style="float:right;" href="signup.php">Sign Up</a>
 					</td></tr>
 		</table>
 	</div>

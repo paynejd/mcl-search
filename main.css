@@ -55,7 +55,11 @@ span.note {
 	#signin input[type="text"],
 	#signin input[type="password"] 
 	{
-		width:150px;
+		width:200px;
+		font-size:10pt;
+		height: 28px;
+		padding-left: 8px;
+		padding-right: 8px;
 	}
 	#signin .loginerr {
 		color: Red;
