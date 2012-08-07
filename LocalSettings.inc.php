@@ -3,7 +3,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors',true);
 
-define ('MCL_ROOT', '/Users/paynejd/Sites/mcl/mcl-search-rimu/');
+define ('MCL_ROOT', '/Users/paynejd/Sites/mcl/mcl-search/');
 
 require_once(MCL_ROOT . 'DefaultSettings.inc.php');
 
@@ -25,8 +25,8 @@ require_once(MCL_ROOT . 'DefaultSettings.inc.php');
  * Database connection
  */
 	$mcl_db_host  =  'localhost'   ;
-	$mcl_db_uid   =  'username'    ;
-	$mcl_db_pwd   =  'password'    ;
+	$mcl_db_uid   =  'mcl_search'  ;
+	$mcl_db_pwd   =  'mcl_pwd'     ;
 
 
 ?>
