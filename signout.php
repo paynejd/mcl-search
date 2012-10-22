@@ -13,7 +13,8 @@ require_once('LocalSettings.inc.php');
 require_once(MCL_ROOT . 'fw/MclUser.inc.php');
 session_start();
 
-MclUser::signout();
+// Sign out the user
+	MclUser::signout();
 
 // Build redirect url
 	if (isset($_POST['r'])) {
