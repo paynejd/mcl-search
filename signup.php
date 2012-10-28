@@ -28,7 +28,7 @@ session_start();
 	MclUser::signout();
 
 // Initialize
-	$result    =  null  ;
+	$result    =  null  ;		// Outcome of new user creation
 	$user      =  null  ;
 	$cxn_mcl   =  null  ;
 	$fname     =  (isset($_POST['fname'  ])) ? $_POST['fname'  ] : ''  ;
@@ -80,8 +80,9 @@ session_start();
 // NOTE: Unverified users cannot do anything that is visible publicly
 	if (  $is_form_submit  &&  !$is_error  )
 	{
-		if (  MclUser::createUser($cxn_mcl, $user, $pwd)  )  {
-			echo 'YAY!';
+		if (  $result  =  MclUser::createUser($cxn_mcl, $user, $pwd)  )  
+		{
+			// TODO: Anything need to be done here?
 		}
 	}
 
@@ -112,21 +113,21 @@ $(document).ready(function() {
 	</div>
 </div>
 
-<pre>
-<?php
-var_dump($_POST);
-?>
-</pre>
-
 <div id="content">
+
+<?php  if (  $is_form_submit  &&  $result  )  {  ?>
+
+	<div id="signin" class="shadow">
+		<h2>One more step...</h2>
+		<p>An email has been sent to <strong><?php echo $uid ?></strong>.  
+			Follow the instructions in the email to complete your registration.</p>
+	</div>
+
+<?php  }  else  {  ?>
+
 	<form action="signup.php" method="post">
 	<div id="signin" class="shadow">
 		<h2>MCL:Search Sign Up</h2>
-<?php
-if (!is_null($result)) {
-	echo '<div class="loginerr">Invalid email and password combination!</div>';
-}
-?>
 		<table>
 			<tr><td><label for="uid">First:</label></td>
 				<td><?php if (isset($arr_err['fname'])) { ?>
@@ -163,6 +164,9 @@ if (!is_null($result)) {
 		</table>
 	</div>
 	</form>
+
+<?php  }  ?>
+
 </div>
 
 
