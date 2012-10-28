@@ -1,10 +1,11 @@
 <?php
+/**
+* RETIRE??
+*/
 
 class MclUserFactory
 {
 	public function createUser() {
 		
 	}
-
-	public function 
 }
