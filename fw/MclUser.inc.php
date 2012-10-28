@@ -6,21 +6,23 @@
  */
 class MclUser 
 {
-	public $user_id  =  null;
-	public $uid      =  null;
-	public $fname    =  null;
-	public $lname    =  null;
-	public $org      =  null;
-	public $super    =  null;
+	public $user_id   =  null  ;
+	public $uid       =  null  ;
+	public $fname     =  null  ;
+	public $lname     =  null  ;
+	public $org       =  null  ;
+	public $super     =  null  ;
+	public $verified  =  null  ;
 
-	public function __construct($user_id, $uid, $fname, $lname, $org, $super) 
+	public function __construct($user_id, $uid, $fname, $lname, $org, $super, $verified = null) 
 	{
-		$this->user_id  =  $user_id;
-		$this->uid      =  $uid;
-		$this->fname    =  $fname;
-		$this->lname    =  $lname;
-		$this->org      =  $org;
-		$this->super    =  $super;
+		$this->user_id   =  $user_id   ;
+		$this->uid       =  $uid       ;
+		$this->fname     =  $fname     ;
+		$this->lname     =  $lname     ;
+		$this->org       =  $org       ;
+		$this->super     =  $super     ;
+		$this->verified  =  $verified  ;
 	}
 
 	/**
@@ -43,7 +45,8 @@ class MclUser
 		// TODO: Remove hard coded reference to 'mcl' database
 		$uid = strtolower($uid);
 		$sql = 
-				"select user_id, email, fname, lname, org, super from mcl.user " . 
+				"select user_id, email, fname, lname, org, super, verified " . 
+				"from mcl.user " . 
 				"where LOWER(email) = '" . 
 				mysql_real_escape_string($uid, $cxn) . 
 				"' and pwd = password('" . 
@@ -60,7 +63,8 @@ class MclUser
 					$row[  'fname'    ],
 					$row[  'lname'    ],
 					$row[  'org'      ],
-					$row[  'super'    ]
+					$row[  'super'    ],
+					$row[  'verified' ]
 				);
 			return $user;
 		}
@@ -117,7 +121,6 @@ class MclUser
 				"'" . mysql_real_escape_string($user->org  , $cxn) . "', " .
 				($user->super ? '1' : '0') .
 			')';
-		var_dump($sql);
 		if (  !($result = mysql_query($sql, $cxn))  ) {
 			var_dump($sql);
 			trigger_error('Could not create user: ' . mysql_error($cxn), E_USER_ERROR);
@@ -130,9 +133,8 @@ class MclUser
 	/**
 	 * Validates the user object. Returns true if fields are syntactically valid, 
 	 * or false on error. Optionally pass an array by reference to get the error messages.
-	 * Note that passwords are not validated since they are not stored in the
-	 * user object. Note that the this function does not check if the username is
-	 * unique.
+	 * Note that passwords are not validated since they are not stored in the user
+	 * object. Note that the this function does not check if the username is unique.
 	 */
 	public function isValid(MclUser $user, array &$arr_err = null)
 	{
