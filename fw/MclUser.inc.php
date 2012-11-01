@@ -190,6 +190,42 @@ class MclUser
 		return true;
 	}
 
+	public static function verifyUser($cxn_mcl, $uid, $hash)
+	{
+		// Check if user verification record exists matching the passed username and hash code
+		$sql  =  
+			"select count(*) from user_validation where uid = '" . 
+			mysql_real_escape_string($uid, $cxn_mcl) . 
+			"' and hash = '" . mysql_real_escape_string($hash, $cxn_mcl) . "'";
+		if (  !($result = mysql_query($sql, $cxn_mcl))  ) 
+		{
+			trigger_error('Could not execute query: ' . $sql . '; ' . mysql_error($cxn_mcl), E_USER_ERROR);
+			exit();
+		}
+		$row = mysql_fetch_array($result);
+		$count = $row[0] * 1;
+		if (!$count) return false;
+
+		// Activate the record in the user table
+		$sql = 
+			"update user set verified = 1 where email = '" . mysql_real_escape_string($uid, $cxn_mcl) . "'";
+		if (  !mysql_query($sql, $cxn_mcl)  ) 
+		{
+			trigger_error('Could not execute query: ' . $sql . '; ' . mysql_error($cxn_mcl), E_USER_ERROR);
+			exit();
+		}
+
+		// Delete the verification record
+		$sql  =  "delete from user_validation where uid = '" . mysql_real_escape_string($uid, $cxn_mcl) . "'";
+		if (  !mysql_query($sql, $cxn_mcl)  ) 
+		{
+			trigger_error('Could not execute query: ' . $sql . '; ' . mysql_error($cxn_mcl), E_USER_ERROR);
+			exit();
+		}
+
+		return true;
+	}
+
 	/**
 	 * Sends a verification email to the user which includes a link that must be clicked 
 	 * on before the user account can be used.
@@ -230,7 +266,7 @@ class MclUser
 
 		// Send email
 		if (  !mail(  $user->uid  ,  $subject  ,  $msg  ,  $headers  )  )
-		{
+		{	
 			return false;
 		}
 

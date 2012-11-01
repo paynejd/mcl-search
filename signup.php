@@ -2,9 +2,7 @@
 /****************************************************************************************************
 ** signup.php
 **
-** UNDER CONSTRUCTION
-**
-** Page request a new user account.
+** Page to request a new user account.
 ** --------------------------------------------------------------------------------------------------
 ** TO DO:
 **  -  Inline Javascript form validation
@@ -127,7 +125,7 @@ $(document).ready(function() {
 
 	<div id="signin" class="shadow">
 		<h2>One more step...</h2>
-		<p style="font-size:12pt;">An email has been sent to <span style="color:#666;font-weight:bold;"><?php echo $uid ?></span>.  
+		<p style="font-size:12pt;">An email has been sent to <span style="color:blue;font-weight:bold;"><?php echo $uid ?></span>.  
 			Follow the instructions in the email to complete your registration.</p>
 	</div>
 
