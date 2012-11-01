@@ -22,6 +22,8 @@
 require_once('LocalSettings.inc.php');
 require_once(MCL_ROOT . 'fw/MclUser.inc.php');
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors',1);
 
 
 // Sign out current user - in case they got here on accident
@@ -68,6 +70,7 @@ session_start();
 		if (!($cxn_mcl = mysql_connect($mcl_db_host, $mcl_db_uid, $mcl_db_pwd))) {
 			die('Could not connect to database: ' . mysql_error($cxn_mcl));
 	 	}
+	 	mysql_select_db($mcl_enhanced_db_name, $cxn_mcl);
 
 		// Check that username is unique
 		if (MclUser::doesUserExist($cxn_mcl, $uid))  {
@@ -82,7 +85,12 @@ session_start();
 	{
 		if (  $result  =  MclUser::createUser($cxn_mcl, $user, $pwd)  )  
 		{
-			// TODO: Anything need to be done here?
+			// Send user verification email
+			if (  !(  $is_email_sent = MclUser::sendVerificationEmail($cxn_mcl, $user)  )  )  
+			{
+				// Could not send email, delete user record and prompt user to register again
+				MclUser::deleteUser($cxn_mcl, $user);
+			}
 		}
 	}
 
@@ -96,11 +104,11 @@ session_start();
 <script type="text/javascript" src="js/jquery.watermark.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-	$('#fname').watermark('First Name');
-	$('#lname').watermark('Last Name');
-	$('#org').watermark('Organization');
-	$('#uid').watermark('Email');
-	$('#pwd').watermark('Password');
+	$('#fname'  ).watermark('First Name'      );
+	$('#lname'  ).watermark('Last Name'       );
+	$('#org'    ).watermark('Organization'    );
+	$('#uid'    ).watermark('Email'           );
+	$('#pwd'    ).watermark('Password'        );
 	$('#confirm').watermark('Confirm Password');
 });
 </script>
@@ -115,12 +123,22 @@ $(document).ready(function() {
 
 <div id="content">
 
-<?php  if (  $is_form_submit  &&  $result  )  {  ?>
+<?php  if (  $is_form_submit  &&  $result  &&  $is_email_sent  )  {  ?>
 
 	<div id="signin" class="shadow">
 		<h2>One more step...</h2>
-		<p>An email has been sent to <strong><?php echo $uid ?></strong>.  
+		<p style="font-size:12pt;">An email has been sent to <span style="color:#666;font-weight:bold;"><?php echo $uid ?></span>.  
 			Follow the instructions in the email to complete your registration.</p>
+	</div>
+
+<?php  }  elseif (  $is_form_submit  &&  $result  &&  !$is_email_sent  )  {  ?>
+
+	<div id="signin" class="shadow">
+		<h2>Oops...</h2>
+		<p style="font-size:12pt;">Unable to send email to <span style="color:blue;font-weight:bold;"><?php echo $uid ?></span>.  
+			Please try registering again.</p>
+		<p style="font-size:12pt;"><a href="signup.php">Sign Up</a></p>
+		<p style="font-size:12pt;">If the problem persists, please contact <a href="mailto:info@maternalconceptlab.org">info@maternalconceptlab.org</a>.</p>
 	</div>
 
 <?php  }  else  {  ?>

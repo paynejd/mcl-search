@@ -136,7 +136,7 @@ class MclUser
 	 * Note that passwords are not validated since they are not stored in the user
 	 * object. Note that the this function does not check if the username is unique.
 	 */
-	public function isValid(MclUser $user, array &$arr_err = null)
+	public static function isValid(MclUser $user, array &$arr_err = null)
 	{
 		if (  !$arr_err  )  $arr_err  =  array();
 
@@ -157,12 +157,112 @@ class MclUser
 		return true;
 	}
 
+	/**
+	 * Deletes the user from the MCL database (both user and user_validation tables). Accepts
+	 * either a valid user identifier (email address) or a MclUser object.
+	 * Returns true on success or false if an error occurred.
+	 */
+	public static function deleteUser($cxn_mcl, $user)
+	{
+		if ($user instanceof MclUser) {
+			$uid = $user->uid;
+		} else {
+			$uid = $user;
+		}
+		if (  !MclUser::isValidEmail($uid)  )  return false;
+
+		// Delete old verification record if one exists
+		$sql  =  "delete from user_validation where uid = '" . mysql_real_escape_string($uid, $cxn_mcl) . "'";
+		if (  !mysql_query($sql, $cxn_mcl)  ) 
+		{
+			trigger_error('Could not execute query: ' . $sql . '; ' . mysql_error($cxn_mcl), E_USER_ERROR);
+			exit();
+		}
+
+		// Delete user if exists
+		$sql  =  "delete from user where email = '" . mysql_real_escape_string($uid, $cxn_mcl) . "'";
+		if (  !mysql_query($sql, $cxn_mcl)  ) 
+		{
+			trigger_error('Could not execute query: ' . $sql . '; ' . mysql_error($cxn_mcl), E_USER_ERROR);
+			exit();
+		}
+
+		return true;
+	}
+
+	/**
+	 * Sends a verification email to the user which includes a link that must be clicked 
+	 * on before the user account can be used.
+	 */
+	public static function sendVerificationEmail($cxn_mcl, MclUser $user)
+	{
+		// Create hash code
+		$hash        =  md5(  $user->uid . rand(0,1000)  );
+		$url_verify  =  
+				'http://www.openconceptlab.org/mcl-search/verify_user.php?u=' . 
+				urlencode($user->uid) . '&h=' . urlencode($hash);
+
+		// Set email subject
+		$subject  =  'MCL:Search Email Verification';
+
+		// Set email headers
+		$headers  =  "From: info@mopenconceptlab.org\r\n";
+		$headers .=  "Reply-To: info@openconceptlab.org\r\n";
+		$headers .=  "MIME-Version: 1.0\r\n";
+		$headers .=  "Content-Type: text/html; charset=ISO-8859-1\r\n";
+
+		// Set email body
+		// TODO: Will need to change image url after migration
+		$msg      =  
+			'<html><body>' .
+			'<div style="margin-left:auto;margin-right:auto;width:360px;border:1px solid #aaf;background:#fff;padding:25px;">' .
+				'<img src="http://www.openconceptlab.org/mcl-search/images/mcl-search-logo.png" alt="MCL:Search Logo" />' .
+				'<div style="font-weight:bold;font-size:16pt;font-family:Verdana;padding-bottom:20px;">Thank you for signing up!</div>' .
+				'<div style="font-weight:normal;font-size:12pt;font-family:Verdana;padding-bottom:20px;">Click on the link below to verify your ' . 
+				'email address and start using the full functionality of <strong>MCL:Search</strong>:</div>' .
+				'<div style="font-weight:normal;font-size:12pt;font-family:Verdana;padding-bottom:20px;">' . 
+				'<a href="' . htmlentities($url_verify) . '">' . htmlentities($url_verify) . '</a></div>' .
+				'<div style="font-weight:normal;font-size:12pt;font-family:Verdana;padding-bottom:20px;">Look forward to seeing you ' .
+				'soon at <a href="http://www.openconceptlab.org/">www.openconceptlab.org</a>.</div>' .
+				'<div style="font-weight:normal;font-size:12pt;font-family:Verdana;padding-bottom:20px;">Thanks,<br />The MCL Team</div>' .
+			'</div>' .
+			'</body></html>';
+
+		// Send email
+		if (  !mail(  $user->uid  ,  $subject  ,  $msg  ,  $headers  )  )
+		{
+			return false;
+		}
+
+		// Delete old verification record if one exists
+		$sql  =  "delete from user_validation where uid = '" . mysql_real_escape_string($user->uid, $cxn_mcl) . "'";
+		if (  !mysql_query($sql, $cxn_mcl)  ) 
+		{
+			trigger_error('Could not execute query: ' . $sql . '; ' . mysql_error($cxn_mcl), E_USER_ERROR);
+			exit();
+		}
+
+		// If email works, then save the user verification record
+		$sql = 
+			'insert into user_validation (uid, email_sent, hash) values (' .
+				"'" . mysql_real_escape_string($user->uid, $cxn_mcl) . "', " .
+				'NOW(), ' .
+				"'" . mysql_real_escape_string($hash, $cxn_mcl) . "'" . 
+			')';
+		if (  !mysql_query($sql, $cxn_mcl)  ) 
+		{
+			trigger_error('Could not create verification record--you will need to sign up again: ' . $sql . '; ' . mysql_error($cxn_mcl), E_USER_ERROR);
+			exit();
+		}
+
+		return true;
+	}
 
 	/**
 	 * Validate an email address. Provide email address (raw input). Returns true 
 	 * if the email address has the email address format and the domain exists.
 	 */
-	function isValidEmail($email)
+	public function isValidEmail($email)
 	{
 		$isValid = true;
 		$atIndex = strrpos($email, "@");
