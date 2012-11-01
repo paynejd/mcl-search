@@ -36,7 +36,7 @@ require_once(MCL_ROOT . 'fw/MclUser.inc.php');
 session_start();
 
 
-// Get the user
+// Get the user (if logged in)
 	$user = null;
 	if (MclUser::isLoggedIn()) {
 		$user = MclUser::getLoggedInUser();

@@ -21,6 +21,7 @@ $do_signin = false;
 
 
 // Clear out any currently signed in user just in case
+	// TODO: Consider just telling them that they are already signed in rather than kicking them out
 	MclUser::signout();
 
 // Make sure valid username and password were submitted
