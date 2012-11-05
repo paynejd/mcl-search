@@ -101,8 +101,9 @@ class ConceptSearchSourceCollection
 	
 	/**
 	 * Get an array of ConceptSearchSource objects of type MCL_SOURCE_TYPE_MAP that
-	 * are members of the passed dictionary source.
-	 * @param ConceptSearchSource $css_dict ConceptSearchSource of type MCL_SOURCE_TYPE_DICTIONARY
+	 * are members of the passed dictionary source. Returns all map sources if no 
+	 * dictionary is specified.
+	 * @param ConceptSearchSource $css_dict (Optional) ConceptSearchSource of type MCL_SOURCE_TYPE_DICTIONARY
 	 * @return Array of ConceptSearchSource objects
 	 */
 	public function getMapSources(ConceptSearchSource $css_dict = null)
