@@ -89,8 +89,14 @@ session_start();
 	{
 		trigger_error('Invalid value for $mcl_mode in LocalSettings.inc.php: ' . $mcl_mode, E_USER_ERROR);
 	}
-	$css_default_source   =  $coll_source->getDictionary($mcl_default_concept_dict_db); 
 	$arr_concept_sources  =  $coll_source->getHtmlSelectArray();
+
+// Set default source
+	$css_default_source   =  $coll_source->getDictionary($mcl_default_concept_dict_db); 
+	if (  !$css_default_source  )  {
+		trigger_error('Invalid source "' . $mcl_default_concept_dict_db . 
+				'" (Set $mcl_default_concept_dict_db in LocalSettings.inc.php)', E_USER_ERROR);
+	}
 
 // TODO: Cache results of ConceptSearchSourceCollection
 
