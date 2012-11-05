@@ -1,4 +1,14 @@
 <?php
+/****************************************************************************************************
+** ConceptSearchFactory.inc.php
+**
+** CSF performs a concept search based on the query defined in a ConceptSearch object. 
+** A ConceptSearchResults object is returned.
+** --------------------------------------------------------------------------------------------------
+** TODO:
+**	- Support OpenMRS v1.6 and v1.9 simultaneously (currently only supports v1.6)
+*****************************************************************************************************/
+
 
 require_once(MCL_ROOT . 'fw/Collection.inc.php');
 require_once(MCL_ROOT . 'fw/ConceptSearchGroup.inc.php');
@@ -484,33 +494,63 @@ class ConceptSearchFactory
 	 */
 	private function _loadMappings(ConceptSearchSource $css_dict, ConceptSearch $cs, ConceptCollection $cc)
 	{
-		// build the sql
+		// Get CSV of visible concept IDs that are members of the current dictionary source
 		$csv_concept_id = $cc->getVisibleConceptIdCsv($css_dict);
-		$sql_maps = 
-			'select cm.concept_map_id, cm.concept_id, cm.source, ' . 
-				'cm.source_code, cs.name source_name ' . 
-			'from concept_map cm ' . 
-			'left join concept_source cs on cs.concept_source_id = cm.source ' .
-			'where cm.concept_id in (' . $csv_concept_id . ')';
+
+		// Build the SQL based on the version of the dictionary
+		if ($css_dict->version == MCL_OMRS_VERSION_1_6)
+		{
+			// build the sql
+			$sql_maps = 
+				'select ' .
+					'cm.concept_map_id AS concept_map_id, ' .
+					'cm.concept_id AS concept_id, ' .
+					'cm.source AS source_id, ' . 
+					'cm.source_code AS map_code, ' .
+					'cs.name AS source_name ' . 
+				'from concept_map cm ' . 
+				'left join concept_source cs on cs.concept_source_id = cm.source ' .
+				'where cm.concept_id in (' . $csv_concept_id . ')';
+		}
+		elseif ($css_dict->version == MCL_OMRS_VERSION_1_9)
+		{
+			$sql_maps =
+					'select  ' .
+						'crm.concept_map_id AS concept_map_id, ' .
+						'crm.concept_id AS concept_id, ' .
+						'crt.concept_source_id AS source_id, ' .
+						'crt.code AS map_code, ' .
+						'crs.name AS source_name ' .
+					'from openmrs19.concept_reference_map crm ' .
+					'left join openmrs19.concept_reference_term crt on crt.concept_reference_term_id = crm.concept_reference_term_id ' .
+					'left join openmrs19.concept_reference_source crs on crs.concept_source_id = crt.concept_source_id ' .
+					'where crm.concept_id in (' . $csv_concept_id . ')';
+		}
+		else
+		{
+			trigger_error('Dictionary "' . $css_dict->dict_name . 
+					'" version must be 1.6 or 1.9', E_USER_ERROR);
+		}
 		if ($this->debug) {
 			echo '<p><b>Loading concept mappings for ' . $css_dict->dict_db . ':</b><br> ' . $sql_maps . '</p>';
 		}
 
-		// do the query
-			$rsc_maps = mysql_query($sql_maps, $css_dict->getConnection());
-			if (!$rsc_maps) {
-				echo "could not query db in ConceptSearchFactory::_loadMappings: " . mysql_error();
-			}
+		// Perform the query
+		$rsc_maps = mysql_query($sql_maps, $css_dict->getConnection());
+		if (!$rsc_maps) {
+			echo "could not query db in ConceptSearchFactory::_loadMappings: " . mysql_error();
+		}
 
 		// Add mappings to the concepts
-		while ($row = mysql_fetch_assoc($rsc_maps)) {
+		while ($row = mysql_fetch_assoc($rsc_maps)) 
+		{
 			$_concept_id = $row['concept_id'];
 			$c  =  $cc->getConcept($_concept_id, $css_dict);
 			if ($c) {
 				$c->addMapping(new ConceptMapping(
 						$row[  'concept_map_id'  ],
-						$row[  'source'          ], 
-						$row[  'source_code'     ], 
+						$row[  'source_id'       ], 
+						$row[  'map_code'        ], 
 						$row[  'source_name'     ]
 					));
 			}
