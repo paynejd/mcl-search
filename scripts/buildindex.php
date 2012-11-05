@@ -37,7 +37,7 @@ echo '<pre>';
 	mysql_select_db($mcl_enhanced_db_name, $cxn_mcl);
 
 // Create the index table
-	$result  =  MclIndex::buildIndex(  $cxn_mcl  ,  $mcl_enhanced_db_name,  
+	$result  =  MclIndex::buildIndex(  $cxn_mcl  ,  $mcl_enhanced_db_name  ,  
 			$mcl_base_index_table_name  ,  $mcl_mapsource_index_table_name  );
 
 
