@@ -645,11 +645,17 @@ class ConceptSearchFactory
 	 * @param ConceptSearch $cs
 	 * @param ConceptCollection $cc
 	 */
-	private function _loadConceptNames(ConceptSearchSource $css_dict, ConceptSearch $cs, ConceptCollection $cc)
+	private function _loadConceptNames(
+			ConceptSearchSource $css_dict, 
+			ConceptSearch $cs, 
+			ConceptCollection $cc
+		)
 	{
-		// build sql for ALL concepts (not just visible ones)
+		// Get concept IDs for all concepts (not just visible ones)
 		$csv_concept_id     =  $cc->getConceptIdCsv(  $css_dict  )  ;
 		$csv_qa             =  $cc->getQAIdCsv     (  $css_dict  )  ;
+
+		// Build SQL
 		$sql_concept_names  =
 			'select cn.concept_name_id, cn.concept_id, cn.name, ' . 
 				'cn.locale, cntm.concept_name_tag_id, cn.uuid ' .

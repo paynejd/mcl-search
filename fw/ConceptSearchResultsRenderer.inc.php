@@ -519,8 +519,8 @@ END;
 		if ($c->retired) $concept_name_class .= ' spanRetired';
 
 		// Concept name
-		$concept_name = htmlentities($c->getPreferredName());
-		$arr_term_type = array(
+		$concept_name  =  htmlentities($c->getPreferredName());
+		$arr_term_type =  array(
 				MCL_SEARCH_TERM_TYPE_TEXT,
 				MCL_SEARCH_TERM_TYPE_CONCEPT_NAME,
 			);
