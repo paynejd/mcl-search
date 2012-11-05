@@ -90,7 +90,8 @@ class ConceptSearchSourceFactory
 					$row[  'db_name'        ], 
 					$row[  'dict_name'      ], 
 					$row[  'fulltext_mode'  ], 
-					$row[  'last_updated'   ]
+					$row[  'last_updated'   ],
+					$row[  'ver'            ]
 				);
 			$css->setConnectionParameters(
 					$row[  'host'  ], 
@@ -159,12 +160,23 @@ class ConceptSearchSourceFactory
 		mysql_select_db(  $css_dict->dict_db  ,  $cxn  );
 
 		// Build the sql
-		$sql_cs = 
-			'select cs.concept_source_id, cs.name, cs.description, cs.retired ' .
-			'from ' . $css_dict->dict_db . '.concept_source cs ' . 
-			'order by cs.name';
+		if (  $css_dict->version == MCL_OMRS_VERSION_1_6  )
+		{
+			$sql_cs = 
+				'select cs.concept_source_id, cs.name, cs.description, cs.retired ' .
+				'from ' . $css_dict->dict_db . '.concept_source cs ' . 
+				'order by cs.name';
+		}
+		elseif (  $css_dict->version == MCL_OMRS_VERSION_1_9  )
+		{
+			$sql_cs = 
+				'select cs.concept_source_id, cs.name, cs.description, cs.retired ' .
+				'from ' . $css_dict->dict_db . '.concept_reference_source cs ' . 
+				'order by cs.name';
+		}
 		if (  $this->debug  ) {
-			echo '<p><b>Loading map source definitions for ' . $css_dict->dict_db . ':</b><br> ' . $sql_cs . '</p>';
+			echo '<p><b>Loading map source definitions for ' . $css_dict->dict_db . 
+					' (v' . $css_dict->version . '):</b><br> ' . $sql_cs . '</p>';
 		}
 
 		// Execute the query

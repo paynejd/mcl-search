@@ -52,7 +52,13 @@ class ConceptSearchSource
 	 * @type string
 	 */
 	public $dict_last_updated = null;
-	
+
+	/**
+	 * OMRS concept dictionary version. Only applicable if source type is dictionary.
+	 * @type string
+	 */
+	public $version = null;
+
 	/**
 	 * Map source numeric ID.
 	 * @type int
@@ -121,20 +127,20 @@ class ConceptSearchSource
 	 * Get the database connection for type = MCL_SOURCE_TYPE_DICTIONARY
 	 * @return connection resource
 	 */
-	public function getConnection()
+	public function getConnection($new_link = false)
 	{
 		// DICTIONARY: Get the connection from this object
 		if ($this->type == MCL_SOURCE_TYPE_DICTIONARY)  
 		{
-			if ($this->conn) {
+			if ($this->conn && !$new_link) {
 				mysql_select_db($this->dict_db);
 				return $this->conn;
 			} elseif ($this->db_host && $this->db_uid) {
-				$this->conn = mysql_connect($this->db_host, $this->db_uid, $this->db_pwd);
+				$this->conn = mysql_connect($this->db_host, $this->db_uid, $this->db_pwd, $new_link);
 				mysql_select_db($this->dict_db);
 				return $this->conn;
 			} else {
-				trigger_error('Database conection information not set.', E_USER_ERROR);
+				trigger_error('Database connection information not set.', E_USER_ERROR);
 			}
 		}
 		
@@ -145,9 +151,9 @@ class ConceptSearchSource
 			if (count($arr_css_dict) == 1) {
 				reset($arr_css_dict);
 				$css_dict = current($arr_css_dict);
-				return $css_dict->getConnection();
+				return $css_dict->getConnection($new_link);
 			} else {
-				trigger_error('Dictionary sources for this map source object not set', E_USER_ERROR);
+				trigger_error('Dictionary source for this map source object not set', E_USER_ERROR);
 			}
 		}
 		
@@ -179,7 +185,7 @@ class ConceptSearchSource
 		else 
 		{
 			// TODO: Validate the source text
-			$this->setSourceDictionary(null, $source_text, null, null);
+			$this->setSourceDictionary(null, $source_text, null, null, null);
 		}
 	}
 	public function setSourceAllDictionaries()
@@ -192,7 +198,8 @@ class ConceptSearchSource
 		$this->list_id             =  $list_id                    ;
 		$this->list_name           =  $list_name                  ;
 	}
-	public function setSourceDictionary($dict_id, $dict_db, $dict_name, $dict_fulltext_mode, $dict_last_updated)
+	public function setSourceDictionary($dict_id, $dict_db, $dict_name, 
+			$dict_fulltext_mode, $dict_last_updated, $version)
 	{
 		$this->type                =  MCL_SOURCE_TYPE_DICTIONARY  ;
 		$this->dict_id             =  $dict_id                    ;
@@ -200,6 +207,7 @@ class ConceptSearchSource
 		$this->dict_name           =  $dict_name                  ;
 		$this->dict_fulltext_mode  =  $dict_fulltext_mode         ;
 		$this->dict_last_updated   =  $dict_last_updated          ;
+		$this->version             =  $version                    ;
 	}
 	public function setSourceMap($dict_id, $dict_db, $dict_name, 
 		$map_source_id, $map_source_name)
