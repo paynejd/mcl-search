@@ -23,6 +23,12 @@
 	define(  'MCL_MODE_ENHANCED'      ,  2  );
 
 /**
+ * Concept dictionary version
+ */
+	define(  'MCL_OMRS_VERSION_1_6'  ,  '1.6'  );
+	define(  'MCL_OMRS_VERSION_1_9'  ,  '1.9'  );
+
+/**
  * index_mode - MCL_FULLTEXT_MODE_OFF queries concept names and concept descriptions using 
  * regular expressions, which can be very slow due to lack of indexes. MCL_FULLTEXT_MODE_ON
  * searches are much faster, but it creates 2 new tables and takes up more space. Use the
@@ -131,9 +137,10 @@
 /**
  * Default database names. Should be modified in LocalSettings.inc.php if different.
  */
-	$mcl_default_concept_dict_db    =  'openmrs'  ;
-	$mcl_default_concept_dict_name  =  'OpenMRS'  ;
-	$mcl_enhanced_db_name           =  'mcl'      ;
+	$mcl_default_concept_dict_db    =  'openmrs'             ;
+	$mcl_default_concept_dict_name  =  'OpenMRS'             ;
+	$mcl_default_dict_version       =  MCL_OMRS_VERSION_1_6  ;
+	$mcl_enhanced_db_name           =  'mcl'                 ;
 
 
 /**
