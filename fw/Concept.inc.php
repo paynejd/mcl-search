@@ -146,13 +146,17 @@ class Concept
 		foreach ($this->getConceptNameIds() as $_id) 
 		{
 			$cn  =  $this->getConceptName($_id);
+
+			// TODO: Preferred name method that works in OpenMRS v1.6 and v1.9?
+			// NOTE: In OpenMRS v1.6, generic preferred concept_name_tag_id == 4.
+			// This is not used in the CIEL Dictionary v1.9, not sure about PIH or AMPATH.
 			if ($cn->concept_name_tag_id == 4) 
 			{
 				// go ahead and return this since it is preferred
 				$return_cn  =  $cn;
 				return $return_cn;
 			} 
-			elseif ($cn->locale == $default_locale && !$cn) 
+			elseif ($cn->locale == $default_locale && !$return_cn) 
 			{
 				// default to default_locale if no preferred set
 				$return_cn  =  $cn;
