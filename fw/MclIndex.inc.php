@@ -22,12 +22,11 @@ class MclIndex
 
 		// Get unique map source names across dictionaries
 		$arr_map_source_name  =  array();
-		foreach (  $coll_source->getMapSources() as $mapsource  )
-		{
+		foreach (  $coll_source->getMapSources() as $mapsource  )  {
 			$arr_map_source_name[  $mapsource->map_source_name  ]  =  $mapsource->map_source_name  ;
 		}
 		echo '<p><strong>Map sources:</strong><br />';
-		print_r(  array_keys($arr_map_source_name)  );
+		echo print_r(  array_keys($arr_map_source_name)  );
 		echo '</p>';
 
 		// Create base index table
@@ -38,15 +37,13 @@ class MclIndex
 		MclIndex::createMapSourceIndexTable($cxn_mcl, $arr_map_source_name, $mapsource_db_table_name);
 
 		// Populate base index table
-		foreach (  $coll_source->getDictionaries() as $dict  )
-		{
-			MclIndex::populateIndexTable($cxn_mcl, $index_db_table_name, $dict);
+		foreach (  $coll_source->getDictionaries() as $css_dict  )  {
+			MclIndex::populateIndexTable($cxn_mcl, $index_db_table_name, $css_dict);
 		}
 
 		// Populate map source index table for each dictionary
-		foreach (  $coll_source->getDictionaries() as $dict  )
-		{
-			MclIndex::populateMapSourceIndexTable($cxn_mcl, $mapsource_index_table_name, $coll_source, $dict);
+		foreach (  $coll_source->getDictionaries() as $css_dict  )  {
+			MclIndex::populateMapSourceIndexTable($cxn_mcl, $mapsource_db_table_name, $coll_source, $css_dict);
 		}
 	}
 
@@ -63,7 +60,7 @@ class MclIndex
 		// Create and populate base index table
 		$sql_create  = 
 			"CREATE TABLE " . $index_db_table_name . " ( " .
-				"`concept_dict_id` int(11), " .
+				"`dict_id` int(11), " .
 				"`conceptID` int(11) NOT NULL DEFAULT '0', " .
 				"`date_created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00', " .
 				"`name` varchar(255) CHARACTER SET utf8 NOT NULL DEFAULT '', " .
@@ -83,17 +80,16 @@ class MclIndex
 		}
 	}
 
-	public static function populateIndexTable($cxn_mcl, $index_db_table_name, ConceptSearchSource $dict)
+	public static function populateIndexTable($cxn_mcl, $index_db_table_name, ConceptSearchSource $css_dict)
 	{
-		echo '<p><strong>Populating base index table for ' . $dict->dict_db . '...</strong><br />';
+		echo '<p><strong>Populating base index table for ' . $css_dict->dict_db . '...</strong><br />';
 
 		// Build sql
-		$sql_insert  =  MclIndex::getPopulateIndexTableSql($cxn_mcl, $index_db_table_name, $dict);
-		mysql_select_db($dict->dict_db, $cxn_mcl);
-		var_dump($sql_insert);
+		$sql_insert  =  MclIndex::getPopulateIndexTableSql($cxn_mcl, $index_db_table_name, $css_dict);
+		mysql_select_db($css_dict->dict_db, $cxn_mcl);
 		if (  !mysql_query($sql_insert, $cxn_mcl)  ) 
 		{
-			trigger_error('Could not populate index table for ' . $dict->dict_db . ': ' . mysql_error($cxn_mcl), E_USER_ERROR);
+			trigger_error('Could not populate index table for ' . $css_dict->dict_db . ': ' . mysql_error($cxn_mcl), E_USER_ERROR);
 		}
 
 		echo 'DONE!</p>';
@@ -120,7 +116,9 @@ class MclIndex
 
 	public static function getMapSourceTableSql($cxn_mcl, $arr_map_source_name, $mapsource_db_table_name)
 	{
-		$sql_create  =  "CREATE TABLE " . $mapsource_db_table_name . " (";
+		$sql_create  =  
+				"CREATE TABLE " . $mapsource_db_table_name . " (" . 
+				'dict_id int(11), concept_id int(11), ';
 		$i = 0;
 		foreach (  $arr_map_source_name as $mapsource_name  )
 		{
@@ -132,19 +130,143 @@ class MclIndex
 		return $sql_create;
 	}
 
-	public static function populateMapSourceIndexTable($cxn_mcl, $mapsource_index_table_name, 
-			ConceptSearchSourceCollection $coll_source, ConceptSearchSource $dict)
+	public static function populateMapSourceIndexTable($cxn_mcl, $mapsource_db_table_name, 
+			ConceptSearchSourceCollection $coll_source, ConceptSearchSource $css_dict)
 	{
-		// Load
+		// Open a new link to the passed dictionary
+		if (  !(  $cxn_mapcode = $css_dict->getConnection(true)  )  )  {
+			trigger_error('Could not connect to "' . $css_dict->dict_db . '"', E_USER_ERROR);
+		}
+
+		// Load the map code table from the passed dictionary (version dependent) sorted by concept id
+		if ($css_dict->version == MCL_OMRS_VERSION_1_6) 
+		{
+			$sql_mapcode =
+				'select cm.concept_id, cm.source as concept_source_id, cm.source_code as map_code ' .
+				'from openmrs.concept_map cm ' .
+				'order by cm.concept_id';
+		}
+		elseif ($css_dict->version == MCL_OMRS_VERSION_1_9) 
+		{
+			$sql_mapcode =
+				'select crm.concept_id, crt.concept_source_id, crt.code as map_code ' .
+				'from concept_reference_map crm ' .
+				'left join concept_reference_term crt on crt.concept_reference_term_id = crm.concept_reference_term_id ' .
+				'order by crm.concept_id';
+		}
+		else
+		{
+			trigger_error('Invalid concept dictionary version number in table "concept_dict"--must be 1.6 or 1.9', E_USER_ERROR);
+		}
+		$rsc_mapcode = mysql_query($sql_mapcode, $cxn_mapcode);
+		echo '<p><strong>Loading mapcodes from ' . $css_dict->dict_db . ':</strong><br />' . $sql_mapcode . '</p>';
+		if (!$rsc_mapcode) {
+			trigger_error('Could not query mapcodes for ' . $css_dict->dict_db . ': ' . mysql_error($cxn_mapcode), E_USER_ERROR);
+		}
+
+		/*
+		 * Iterate through the returned map codes - 
+		 * Map codes are sorted by concept ID. The loop iterates through map codes, 
+		 * building an array of map codes for the same concept ID. When a new concep ID 
+		 * is retrieved, all the map codes in the array (which belong to the same concept)
+		 * are inserted into the database, and then the array is cleared.
+		 */
+		$current_concept_id  =  null     ;
+		$old_concept_id      =  null     ;
+		$arr_mapcode         =  array()  ;
+		$i_concept           =  0        ;
+		$i_mapcode           =  0        ;
+		while ($row = mysql_fetch_assoc($rsc_mapcode))
+		{
+			// Get the new concept ID
+			$current_concept_id = $row['concept_id'];
+
+			// If new concept ID is different than previous concept ID, then insert mapcode array into database
+			if ($current_concept_id != $old_concept_id && $arr_mapcode)
+			{
+				// Insert contents of map codes array into table
+				$sql_insert = MclIndex::getMapCodeInsertSql($cxn_mcl, $mapsource_db_table_name, 
+						$coll_source, $css_dict, $old_concept_id, $arr_mapcode);
+				if (  !mysql_query($sql_insert, $cxn_mcl)  )
+				{
+					var_dump($sql_insert);
+					trigger_error('Could not insert map code into index table: ' . mysql_error($cxn_mcl), E_USER_ERROR);
+				}
+				$i_concept++;
+				$arr_mapcode = array();
+			}
+
+			// Add current map code to map code array
+			$arr_mapcode[  $row['concept_source_id']  ][]  =  $row['map_code']  ;
+			$i_mapcode++;
+
+			// Next
+			$old_concept_id  =  $current_concept_id;
+		}
+
+		// Insert any map codes that are still in the array
+		if ($arr_mapcode)
+		{
+			$sql_insert = MclIndex::getMapCodeInsertSql($cxn_mcl, $mapsource_db_table_name, 
+					$coll_source, $css_dict, $old_concept_id, $arr_mapcode);
+			if (  !mysql_query($sql_insert, $cxn_mcl)  )
+			{
+				var_dump($sql_insert);
+				trigger_error('Could not insert map code into index table: ' . mysql_error($cxn_mcl), E_USER_ERROR);
+			}
+			$i_concept++;
+			$arr_mapcode = array();
+		}
+
+		echo '<p>' . $i_mapcode . ' mapcodes inserted for ' . $i_concept . ' concepts in "' . $css_dict->dict_db . '"</p>';
+
+		// Close the extra connection
+		mysql_close($cxn_mapcode);
 	}
 
-	public static function getPopulateIndexTableSql($cxn_mcl, $index_db_table_name, ConceptSearchSource $dict)
+	public static function getMapCodeInsertSql($cxn_mcl, $mapsource_db_table_name, 
+			ConceptSearchSourceCollection $coll_source, ConceptSearchSource $css_dict, 
+			$concept_id, $arr_mapcode)
 	{
-		$db = '`' . mysql_real_escape_string($dict->dict_db, $cxn_mcl) . '`';
+		if (!$arr_mapcode)  return '';
+
+		// Set the mapcode columns and values
+		$str_mapcode_columns  =  'dict_id, concept_id';
+		$str_mapcode_values   =  $css_dict->dict_id . ', ' . $concept_id;
+		foreach ($arr_mapcode as $map_source_id => $arr_code)
+		{
+			// Map Source ID - add to the columns string
+			$css_mapsource  =  $coll_source->getMapSource($map_source_id, $css_dict);
+			if ($css_mapsource) {
+				$str_mapcode_columns  .=  ', `' . mysql_real_escape_string($css_mapsource->map_source_name, $cxn_mcl) . '`';
+			} else {
+				var_dump($map_source_id);
+				var_dump($arr_code);
+				var_dump($css_dict);
+				trigger_error('something crazy happened!', E_USER_ERROR);
+			}
+
+			// Map - add to the values string
+			$str_code = implode(' ', $arr_code);
+			$str_mapcode_values  .=  ", '" . mysql_real_escape_string($str_code, $cxn_mcl) . "'";
+		}
+
+		// Put it all together in an sql statement
+		$sql_insert  =
+				'insert into ' . $mapsource_db_table_name . 
+				'(' . $str_mapcode_columns . 
+				') values (' . $str_mapcode_values . ')';
+
+		return $sql_insert;
+	}
+
+	public static function getPopulateIndexTableSql($cxn_mcl, $index_db_table_name, ConceptSearchSource $css_dict)
+	{
+		$db = '`' . mysql_real_escape_string($css_dict->dict_db, $cxn_mcl) . '`';
 		$sql_create  =  
 			"INSERT INTO " . $index_db_table_name . " ";
 		$sql_create .= 
-			"SELECT " . $dict->dict_id . ", ";
+			"SELECT " . $css_dict->dict_id . ", ";
 		$sql_create .= 
 <<<EOD
 	c.concept_id AS conceptID, 
