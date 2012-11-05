@@ -57,7 +57,7 @@ $do_signin = false;
 		// Authenticate
 			if (  $result != MCL_AUTH_INVALID_FORMAT  )  
 			{
-				$user = MclUser::authenticate($cxn_mcl, $uid, $_POST['pwd']);	
+				$user = MclUser::authenticate($cxn_mcl, $uid, $_POST['pwd']);
 				if ($user) {
 					// Successful authentication, so sign in user
 					MclUser::signin($user);
