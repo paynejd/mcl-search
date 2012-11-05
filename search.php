@@ -7,7 +7,7 @@
 ** url parameters:
 **		q					search query
 **		source				comma-separated list of concept sources for the search. 
-**								format: <dictionary_name>[:list(<list_id>)|:map(<map_source_id>)]
+**								format: <dictionary_name>[:map(<map_source_id>)]|list(<list_id>)
 **		retired				whether to include retired concepts in the search results
 **		debug				whether to display debug information
 **		verbose				whether to display verbose information
@@ -22,6 +22,7 @@
 set_time_limit(0);
 error_reporting(-1);
 ini_set('display_errors',1);
+ini_set("memory_limit","128M");
 
 require_once('LocalSettings.inc.php');
 require_once(MCL_ROOT . 'fw/search_common.inc.php');
@@ -75,12 +76,13 @@ session_start();
 	elseif ($mcl_mode  ==  MCL_MODE_OPENMRS_ONLY) 
 	{
 		$coll_source  =  $cssf->loadOpenmrsOnlySourceDefinitions(
-				$cxn_mcl, 
-				$mcl_default_concept_dict_db, 
-				$mcl_default_concept_dict_name, 
-				$mcl_db_host, 
-				$mcl_db_uid, 
-				$mcl_db_pwd
+				$cxn_mcl                        , 
+				$mcl_default_concept_dict_db    , 
+				$mcl_default_concept_dict_name  , 
+				$mcl_db_host                    , 
+				$mcl_db_uid                     , 
+				$mcl_db_pwd                     ,
+				$mcl_default_dict_version
 			);
 	}
 	else 
