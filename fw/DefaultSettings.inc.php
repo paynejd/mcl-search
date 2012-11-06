@@ -97,6 +97,8 @@
  * Concept dictionary constants
  */
 	define(  'MCL_UUID_LENGTH'  ,  36  );
+	define(  'MCL_PREFERRED_CONCEPT_NAME_TAG_ID',  4  );
+	define(  'MCL_PREFERRED_CONCEPT_NAME_TYPE'  ,  'FULLY_SPECIFIED'  );
 
 /**
  * concept source types

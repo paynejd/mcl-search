@@ -105,7 +105,7 @@ class Concept
 	{
 		$this->arr_question[$question_id] = $question_id;
 	}
-	
+
 	/**
 	 * Add ConceptMapping object to this Concept.
 	 */
@@ -139,6 +139,8 @@ class Concept
 	
 	/**
 	 * Get the preferred ConceptName object for this Concept.
+	 *
+	 * TODO: Update this to properly handle OMRS versions and the new concept_name_type field
 	 */
 	public function getPreferredConceptName($default_locale = 'en') 
 	{
@@ -147,10 +149,16 @@ class Concept
 		{
 			$cn  =  $this->getConceptName($_id);
 
-			// TODO: Preferred name method that works in OpenMRS v1.6 and v1.9?
-			// NOTE: In OpenMRS v1.6, generic preferred concept_name_tag_id == 4.
-			// This is not used in the CIEL Dictionary v1.9, not sure about PIH or AMPATH.
-			if ($cn->concept_name_tag_id == 4) 
+			/*
+			 * TODO: Preferred name method that works in OpenMRS v1.6 and v1.9?
+			 * NOTE: In OpenMRS v1.6, generic preferred 
+			 * concept_name_tag_id == MCL_PREFERRED_CONCEPT_NAME_TAG_ID.
+			 * This is not used in the CIEL Dictionary v1.9, not sure about 
+			 * PIH or AMPATH. Also note that this is both a data issue and a 
+			 * process issue. Need to take locale into consideration as well.
+			 */
+			if (  $cn->concept_name_tag_id == MCL_PREFERRED_CONCEPT_NAME_TAG_ID || 
+				  $cn->concept_name_type   == MCL_PREFERRED_CONCEPT_NAME_TYPE   ) 
 			{
 				// go ahead and return this since it is preferred
 				$return_cn  =  $cn;
@@ -177,6 +185,8 @@ class Concept
 
 	/** 
 	 * Get the preferred locale as a string.
+	 *
+	 * TODO: Update to handle OpenMRS v1.9
 	 */
 	public function getPreferredLocale($default_locale = 'en') 
 	{

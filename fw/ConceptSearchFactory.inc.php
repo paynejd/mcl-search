@@ -655,18 +655,30 @@ class ConceptSearchFactory
 		$csv_concept_id     =  $cc->getConceptIdCsv(  $css_dict  )  ;
 		$csv_qa             =  $cc->getQAIdCsv     (  $css_dict  )  ;
 
-		// Build SQL
+		// Build SQL (OMRS version specific)
 		$sql_concept_names  =
-			'select cn.concept_name_id, cn.concept_id, cn.name, ' . 
-				'cn.locale, cntm.concept_name_tag_id, cn.uuid ' .
-			'from concept_name cn ' .
-			'left join concept_name_tag_map cntm on cntm.concept_name_id = cn.concept_name_id ' .
-			'where cn.concept_id in (' . $csv_concept_id . ') or ' . 
-				'cn.concept_id in (' . 
-					'select cs1.concept_id from concept_set cs1 ' .
-					'union ' .
-					'select cs2.concept_set from concept_set cs2 ' .
-				') ';
+				'select ' . 
+					'cn.concept_name_id, ' .
+					'cn.concept_id, ' . 
+					'cn.name, ' . 
+					'cn.locale, ' . 
+					'cntm.concept_name_tag_id, ';
+		if ($css_dict->version == MCL_OMRS_VERSION_1_6) {
+			$sql_concept_names .= 'null as concept_name_type, ';
+		}
+		elseif ($css_dict->version == MCL_OMRS_VERSION_1_9) {
+			$sql_concept_names .= 'cn.concept_name_type, ';
+		}
+		$sql_concept_names .=
+					'cn.uuid ' .
+				'from concept_name cn ' .
+				'left join concept_name_tag_map cntm on cntm.concept_name_id = cn.concept_name_id ' .
+				'where cn.concept_id in (' . $csv_concept_id . ') or ' . 
+					'cn.concept_id in (' . 
+						'select cs1.concept_id from concept_set cs1 ' .
+						'union ' .
+						'select cs2.concept_set from concept_set cs2 ' .
+					') ';
 		if (  $csv_qa       )  {
 			$sql_concept_names  .=  'or cn.concept_id in (' . $csv_qa . ') ';
 		}
@@ -675,9 +687,10 @@ class ConceptSearchFactory
 					':</b><br> ' . $sql_concept_names . '</p>';
 		}
 
-		// do the query
+		// Perform the query
 		$rsc_concept_names  =  mysql_query(  $sql_concept_names  ,  $css_dict->getConnection()  );
-		if (  !$rsc_concept_names  )  {
+		if (  !$rsc_concept_names  )  
+		{
 			trigger_error("could not query db in ConceptSearchFactory::_loadConceptNames: " . mysql_error(), E_USER_ERROR);
 			exit();
 		}
@@ -690,7 +703,8 @@ class ConceptSearchFactory
 					$row[  'concept_name_id'      ], 
 					$row[  'name'                 ], 
 					$row[  'locale'               ], 
-					$row[  'concept_name_tag_id'  ]
+					$row[  'concept_name_tag_id'  ],
+					$row[  'concept_name_type'    ]
 				);
 			$cn->uuid  =  $row[  'uuid'  ];	// keeping this separate to add version compatibility later
 			$c  =  $cc->getConcept(  $_concept_id  ,  $css_dict  );
