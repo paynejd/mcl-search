@@ -44,7 +44,7 @@ class ConceptSearchSourceCollection
 	 * 1 matches a list, multiple map sources, and a dictionary, but will match the concept list
 	 * because it is always matched first. 
 	 * @param	mixed	$source_identifier	Integer or string identifier for a source
-	 * @param	array	$arr_dict_filter	Optional array of ConceptSearchSource objects to filter the map source and ditionary search
+	 * @param	array	$arr_dict_filter	Optional array of ConceptSearchSource objects to filter the map source and dictionary search
 	 * @param	int	$flags	Optional flags to control which source types are searched
 	 * @return ConceptSearchSource
 	 */
@@ -318,7 +318,10 @@ class ConceptSearchSourceCollection
 			foreach ($this->arr_source as $css) 
 			{
 				if ($css->type == MCL_SOURCE_TYPE_DICTIONARY && 
-					strtolower($css->dict_db) == $source_identifier)
+					(   (strtolower($css->dict_db) == $source_identifier)  ||
+						(strtolower($css->dict_name) == $source_identifier)   
+					)
+				   )
 				{
 					return $css;
 				} 
