@@ -348,7 +348,6 @@ class ConceptListFactory
 	 * Get array of available dictionaries. Returned columns:
 	 *   dict_id, dict_name, db_name, dict_descriptor
 	 * where dict_descriptor combines all of these into a single field,
-	 
 	 */
 	public function getDictionariesArray()
 	{
@@ -412,7 +411,11 @@ class ConceptListFactory
 		}
 
 		// Get the dictionary ids
-		$arr_dict_id = $this->getDictionaryArray();
+		$arr_dict_id = $this->getDictionariesArray();
+		$arr_dictname_dictid = array();
+		foreach (array_keys($arr_dict_id) as $k) {
+			$arr_dictname_dictid[  $arr_dict_id[$k]['dict_name']  ]  =  $arr_dict_id[$k]['dict_id'];
+		}
 
 		// Insert the list
 		$sql_insert_list = 
@@ -432,10 +435,11 @@ class ConceptListFactory
 			// Build the sql statement
 			$sql_insert_concepts = ''; 
 			$arr_cl = $cl->getArray();
-			foreach (array_keys($arr_cl) as $dict_db) {
-				foreach ($arr_cl[$dict_db] as $concept_id) {
+			foreach (array_keys($arr_cl) as $dict_name) {
+				foreach ($arr_cl[$dict_name] as $concept_id) {
+					$dict_id = $arr_dictname_dictid[$dict_name];
 					if ($sql_insert_concepts)  $sql_insert_concepts .= ',';
-					$sql_insert_concepts .= '(' . $new_concept_list_id . ',' . $arr_dict_id[$dict_db] . ',' . $concept_id . ')';
+					$sql_insert_concepts .= '(' . $new_concept_list_id . ',' . $dict_id . ',' . $concept_id . ')';
 				}
 			}
 			$sql_insert_concepts = 
@@ -451,6 +455,7 @@ class ConceptListFactory
 			}
 		}
 
+		$cl->cld->setListId($new_concept_list_id);
 		return $new_concept_list_id;
 	}
 
@@ -721,6 +726,99 @@ class ConceptListFactory
 			}
 
 		return true;
+	}
+
+	public static function union()
+	{
+		// Parse through the parameters
+		if (  !func_num_args()  ) 
+		{
+			trigger_error('No arguments passed to ConceptListFactory::union()', E_USER_ERROR);
+		} 
+		elseif (func_num_args() == 1) 
+		{
+			// must be an array of ConceptList objects
+			$arr_cl = func_get_arg(0);
+			if (  !is_array($arr_cl)  )  {
+				trigger_error('Parameter one in ConceptListFactory::union() must be an array of ConceptList objects if passing only 1 parameter', E_USER_ERROR);
+				foreach (array_merge($arr_cl) as $k) {
+					if (  !($arr_cl[$k] instanceof ConceptList)  )  {
+						trigger_error('Parameter one in ConceptListFactory::union() must be an array of ConceptList objects if passing only 1 parameter', E_USER_ERROR);
+					}
+				}
+			}
+		} 
+		elseif (func_num_args() >= 2) 
+		{
+			// each parameter must be a ConceptList object
+			$arr_cl	= func_get_args();
+			foreach (array_merge($arr_cl) as $k) {
+				if (  !($arr_cl[$k] instanceof ConceptList)  )  {
+					trigger_error('Parameter one in ConceptListFactory::union() must be an array of ConceptList objects if passing only 1 parameter', E_USER_ERROR);
+				}
+			}
+		}
+
+		// Perform union
+		$c1 = $c2 = null;
+		foreach (array_keys($arr_cl) as $k) 
+		{
+			if (!$c1) {
+				$c1 = $arr_cl[$k];
+			} elseif (!$c2) {
+				$c2 = $arr_cl[$k];
+				$c1 = $c1->union($c2);
+				$c2 = null;
+			}
+		}
+		return $c1;
+	}
+
+
+	public static function intersect()
+	{
+		// Parse through the parameters
+		if (  !func_num_args()  ) 
+		{
+			trigger_error('No arguments passed to ConceptListFactory::intersect()', E_USER_ERROR);
+		} 
+		elseif (func_num_args() == 1) 
+		{
+			// must be an array of ConceptList objects
+			$arr_cl = func_get_arg(0);
+			if (  !is_array($arr_cl)  )  {
+				trigger_error('Parameter one in ConceptListFactory::intersect() must be an array of ConceptList objects if passing only 1 parameter', E_USER_ERROR);
+				foreach (array_merge($arr_cl) as $k) {
+					if (  !($arr_cl[$k] instanceof ConceptList)  )  {
+						trigger_error('Parameter one in ConceptListFactory::intersect() must be an array of ConceptList objects if passing only 1 parameter', E_USER_ERROR);
+					}
+				}
+			}
+		} 
+		elseif (func_num_args() >= 2) 
+		{
+			// each parameter must be a ConceptList object
+			$arr_cl	= func_get_args();
+			foreach (array_merge($arr_cl) as $k) {
+				if (  !($arr_cl[$k] instanceof ConceptList)  )  {
+					trigger_error('Parameter one in ConceptListFactory::intersect() must be an array of ConceptList objects if passing only 1 parameter', E_USER_ERROR);
+				}
+			}
+		}
+
+		// Perform intersection
+		$c1 = $c2 = null;
+		foreach (array_keys($arr_cl) as $k) 
+		{
+			if (!$c1) {
+				$c1 = $arr_cl[$k];
+			} elseif (!$c2) {
+				$c2 = $arr_cl[$k];
+				$c1 = $c1->intersect($c2);
+				$c2 = null;
+			}
+		}
+		return $c1;
 	}
 }
 
