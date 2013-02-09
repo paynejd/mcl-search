@@ -149,7 +149,7 @@ class Concept
 		{
 			$cn  =  $this->getConceptName($_id);
 
-			/*
+				/*
 			 * TODO: Preferred name method that works in OpenMRS v1.6 and v1.9?
 			 * NOTE: In OpenMRS v1.6, generic preferred 
 			 * concept_name_tag_id == MCL_PREFERRED_CONCEPT_NAME_TAG_ID.
@@ -259,6 +259,16 @@ class Concept
 			return $this->arr_mapping[$concept_map_id];
 		}
 		return null;
+	}
+	public function getMappingsBySourceName($source_name) {
+		$arr_mapping = array();
+		foreach (array_keys($this->arr_mapping) as $concept_map_id) 
+		{
+			if ($this->arr_mapping[$concept_map_id]->source_name == $source_name) {
+				$arr_mapping[$concept_map_id] = $this->arr_mapping[$concept_map_id];
+			}
+		}
+		return $arr_mapping;
 	}
 	
 	public function hasAnswers() {
