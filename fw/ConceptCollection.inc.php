@@ -161,6 +161,26 @@ class ConceptCollection
  * HELPER FUNCTIONS
  **************************************************************************************************/
 
+	/**
+	 * Merge another ConceptCollection into this one. If a concept exists in both
+	 * collections, the original version is retained (i.e. this is not a deep merge, no
+	 * additional information that may be in the concept from the new collection is copied).
+	 * This function does not respect concept search groups.
+	 * @param ConceptCollection $cc
+	 * @return null
+	 */
+	public function merge(ConceptCollection $cc)
+	{
+		// Iterate through new collection and add concepts if they do not exist
+		foreach ($cc->getDictionarySources() as $dict_db) {
+			foreach ($cc->getConceptIds($dict_db) as $concept_id) {
+				if (!$this->getConcept($concept_id, $dict_db)) {
+					$this->addConcept($cc->getConcept($concept_id, $dict_db));
+				}
+			}
+		}
+	}
+
  	/**
 	 * Get an arary of keys for dictionary sources used in this collection.
 	 * @return array
@@ -175,10 +195,11 @@ class ConceptCollection
 	 * @param ConceptSearchSource $css_dict
 	 * @return array
 	 */
-	public function getConceptIds(ConceptSearchSource $css_dict = null)
+	public function getConceptIds($css_dict = null)
 	{
 		// Set the dictionary source
-		if ($css_dict) $dict_db = $css_dict->dict_db;
+		if ($css_dict instanceof ConceptSearchSource) $dict_db = $css_dict->dict_db;
+		elseif ($css_dict) $dict_db = $css_dict;
 		else $dict_db = '';
 
 		// Get the IDs
