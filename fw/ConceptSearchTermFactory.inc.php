@@ -69,17 +69,29 @@ class ConceptSearchTermFactory
 		} elseif ($this->isInteger($search_text)) {
 			return array(
 					MCL_SEARCH_TERM_TYPE_CONCEPT_ID, 
+				);
+			/*
+			 * TODO: Temporarily getting rid of map codes
+			return array(
+					MCL_SEARCH_TERM_TYPE_CONCEPT_ID, 
 					MCL_SEARCH_TERM_TYPE_MAP_CODE
 				);
+			 */
 		} elseif ($this->isUuid($search_text)) {
 			return array(
 					MCL_SEARCH_TERM_TYPE_UUID
 				);
 		} else {	// default
 			return array(
+					MCL_SEARCH_TERM_TYPE_TEXT
+				);
+			/*
+			 * TODO: Temporarily getting rid of map codes
+			return array(
 					MCL_SEARCH_TERM_TYPE_TEXT,
 					MCL_SEARCH_TERM_TYPE_MAP_CODE
 				);
+			 */
 		}
 	}
 
@@ -98,8 +110,8 @@ class ConceptSearchTermFactory
 		 *		[3][0] => search text if single quotes used (may contain whitespace/symbols)
 		 *		[4][0] => search text if no quotes used (no whitespace/symbols)
 		 *
-		 * TODO: Note that complex expressions such as in:list(5, id:15) are not supported by
-		 * regexp. This would instead need a character-by-character algorithmic parsing script.
+		 * TODO: Complex expressions such as in:list(5, id:15) are not supported by this regexp
+		 * Would instead need a character-by-character parsing script.
 		 */
 		$term             =  trim($full_search_term);
 		$arr_matches      =  array();
