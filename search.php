@@ -13,6 +13,10 @@
 **		verbose				whether to display verbose information
 **		class				comma-separated list of ids of concept classes to filter
 **		datatype			comma-separated list of ids of concept datatypes to filter
+**
+**		start				[not implemented] Starting result number
+**		rows 				[not implemented] Number of results per page (default = 20, * or all returns all results)
+**
 **      sort                [devl] use relevancy sort if true 
 **		h					[devl] list of concepts to highlight
 **		use_cache			[devl] prevent loading information from cache
@@ -72,7 +76,7 @@ session_start();
 	if ($mcl_mode  ==  MCL_MODE_ENHANCED) 
 	{
 		$coll_source  =  $cssf->loadEnhancedSourceDefinitions($cxn_mcl);
-	} 
+	}
 	elseif ($mcl_mode  ==  MCL_MODE_OPENMRS_ONLY) 
 	{
 		$coll_source  =  $cssf->loadOpenmrsOnlySourceDefinitions(
