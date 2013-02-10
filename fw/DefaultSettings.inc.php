@@ -182,7 +182,9 @@
 		'datatype'         =>  null   ,
 		'use_cache'        =>  true   ,
 		'source'           =>  ''     ,
-		'sort'             =>  0
+		'sort'             =>  0      ,
+		'p'                =>  20     ,
+		'n'                =>  0      ,
 	);
 
 ?>
