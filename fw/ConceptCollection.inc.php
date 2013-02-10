@@ -172,10 +172,16 @@ class ConceptCollection
 	public function merge(ConceptCollection $cc)
 	{
 		// Iterate through new collection and add concepts if they do not exist
-		foreach ($cc->getDictionarySources() as $dict_db) {
-			foreach ($cc->getConceptIds($dict_db) as $concept_id) {
-				if (!$this->getConcept($concept_id, $dict_db)) {
-					$this->addConcept($cc->getConcept($concept_id, $dict_db));
+		foreach ($cc->getDictionarySources() as $dict_db) 
+		{
+			foreach ($cc->getConceptIds($dict_db) as $concept_id) 
+			{
+				$c_new  = $cc  ->getConcept($concept_id, $dict_db);
+				$c_this = $this->getConcept($concept_id, $dict_db);
+				if (!$c_this) {
+					$this->addConcept($c_new);
+				} elseif ($c_new->display) {
+					$c_this->display = true;
 				}
 			}
 		}
