@@ -125,14 +125,12 @@ define(  'OCL_COMPARE_STATE_SUMMARY'           ,  'SUMMARY'  );
 	foreach ($arr_collection_id as $collection_id)
 	{
 		$cc_merge  =  $ccf->NewCollectionFromListId($collection_id)  ;
-		echo '<p><b>Collection ID ' . $collection_id . '</b>: ' . $cc_merge->getVisibleCount() . ' concept(s) loaded...</p>';
-
+		echo '<p><b>Collection ID ' . $collection_id . '</b>: ' . $cc_merge->getVisibleCount() . ' of ' . 
+				$arr_collection[$collection_id]->getCount() . ' concept(s) loaded...</p>';
 		if (  $cc  )  $cc->merge(  $cc_merge  )  ;
 		else  $cc  =  $cc_merge  ;
-
-		$cc_merge  =  null;
 	}
-	echo '<p><b>Merged Collection: </b>' . $cc->getVisibleCount() . ' concept(s) loaded...</p>';
+	echo '<p><b>Merged Collection: </b>Metadata loaded for ' . $cc->getVisibleCount() . ' concept(s)...</p>';
 
 // Build Mapping Array for each of the mapping sources of interest for each collection
 	$arr_mapping = array();
@@ -258,50 +256,90 @@ foreach ($arrGroup as $group)
 	}
 	$colGrandTotal->setStateConceptList(OCL_COMPARE_STATE_SUMMARY, $c);
 
-
+?>
+<html>
+<head>
+<style type="text/css">
+table.compare {
+	background: #ccc;
+}
+table.compare th, 
+table.compare td {
+	background-color: White;
+	padding: 5px;
+	text-align: center;
+	font-family: Arial,Sans-Serif;
+	font-size:10pt;
+}
+table.compare th {
+	font-weight: bold;
+	background-color: #ddd;
+}
+table.compare td.rowheader {
+	font-style: italic;
+	text-align: left;
+	background-color: #afc;
+}
+table.compare td.subtotal {
+	background-color: #acf;
+}
+table.compare td.grandtotal {
+	background-color: #9af;
+	font-size: 11pt;
+	font-weight: bold;
+}
+</style>
+</head>
+<body>
+<?php
 /****************************************************************************************
 **  DISPLAY - HEADER
 ****************************************************************************************/
 
 // Start
-	echo '<table border="1">';
+	echo '<table class="compare">';
 
 // Header 1
 	echo "<tr>";
-	echo '<td rowspan="2">Set:</td>';
-	echo '<td colspan="' . count($arr_collection) . '">Collections</td>';
+	echo '<thead>';
+	echo '<th rowspan="2">Set:</th>';
+	echo '<th colspan="' . count($arr_collection) . '">Collections</th>';
 	foreach ($arrGroup as $group) {
-		echo '<td colspan="' . $group->getColumnDisplayCount() . '">' . $group->group_name . '</td>';
+		echo '<th colspan="' . $group->getColumnDisplayCount() . '">' . $group->group_name . '</th>';
 	}
-	echo '<td rowspan="2">Grand Total</td>';
+	echo '<th rowspan="2">Grand Total</th>';
 	echo '</tr>';
 
 // Header 2
 	echo "<tr>";
 	// Skip "Set" column (rowspan)
 	foreach (array_keys($arr_collection) as $collection_id) {
-		echo "<td>" . $collection_id . "</td>";
+		echo "<th>" . $collection_id . "</th>";
 	}
 	foreach ($arrGroup as $group) {
 		foreach ($group->arr_column as $column) {
-			echo '<td id="' . $column->key . '">' . $column->column_name . '</td>';
+			echo '<th id="' . $column->key . '">' . $column->column_name . '</th>';
 		}
-		if ($group->display_subtotal_column) echo '<td>Subtotal</td>';
+		if ($group->display_subtotal_column) echo '<th>Subtotal</th>';
 	}
 	// Skip "Grand Total" column (rowspan)
 	echo "</tr>";
+
+	echo '</thead>';
 
 
 /****************************************************************************************
 **  DISPLAY - COMPARISON STATES
 ****************************************************************************************/
-	
+
+echo '<tbody>';
+
 // Iterate through each comparison state
 	foreach (array_keys($arr_state) as $state_id) 
 	{
 		// Start
 		echo '<tr>';
-		echo '<td>Comparison State: ' . $state_id . '</td>';
+		echo '<td class="rowheader">Comparison State: ' . $state_id . '</td>';
 
 		// State indicators
 		foreach ($arr_collection_id as $collection_id) {
@@ -323,28 +361,31 @@ foreach ($arrGroup as $group)
 			// Subtotal
 			if ($group->display_subtotal_column) {
 				$c = $group->col_subtotal->getStateConceptList($state_id);
-				echo '<td>' . $c->getCount() . '</td>';
+				echo '<td class="subtotal">' . $c->getCount() . '</td>';
 			}
 		}
 
 		// Grand total
 		$c = $colGrandTotal->getStateConceptList($state_id);
-		echo '<td>' . $c->getCount() . '</td>';
+		echo '<td class="grandtotal">' . $c->getCount() . '</td>';
 
 		// End
 		echo '</tr>';
 	}
 
+echo '</tbody>';
 
 /****************************************************************************************
 **  DISPLAY - COLUMN TOTALS
 ****************************************************************************************/
 
+echo '<tfoot>';
+
 // Start
 	echo '<tr>';
 
 // Total number of concepts in each collection
-	echo '<td>Number Concepts in Set</td>';
+	echo '<td class="rowheader">Number Concepts in Set</td>';
 	foreach (array_keys($arr_collection) as $collection_id) 
 	{
 		echo '<td>';
@@ -365,13 +406,13 @@ foreach ($arrGroup as $group)
 		// Subtotal
 		if ($group->display_subtotal_column) {
 			$c = $group->col_subtotal->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
-			echo '<td>' . $c->getCount() . '</td>';
+			echo '<td class="subtotal">' . $c->getCount() . '</td>';
 		}
 	}
 
 // TODO: Grant Total
 	$c = $colGrandTotal->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
-	echo '<td>' . $c->getCount() . '</td>';
+	echo '<td class="grandtotal">' . $c->getCount() . '</td>';
 
 // End
 	echo '</tr>';
@@ -380,74 +421,58 @@ foreach ($arrGroup as $group)
 /****************************************************************************************
 **  DISPLAY - MAPPING TOTALS
 ****************************************************************************************/
+$arr_map_summary = array(
+		'SNOMED CT'   => 'SNOMED CT',
+		'SNOMED NP'   => 'SNOMED CT (Not Preferred)',
+		'LOINC'       => 'LOINC',
+		'ICD-10-WHO'  => 'ICD-10-WHO',
+	);
 
-/*
-// concepts with SNOMED CT mapping
+// Iterate through the map sources we want to summarize
+foreach ($arr_map_summary as $mapsource => $mapsource_name) 
+{
 	echo '<tr>';
-	echo '<td>Concepts w/ SNOMED CT Mapping</td>';
+	echo '<td class="rowheader">' . $mapsource_name . '</td>';
+
+	// Iterate through the collection
 	foreach (array_keys($arr_collection) as $collection_id) 
 	{
-		$arr_count = array();
-		foreach (array_keys($arr_mapping[$collection_id]['SNOMED CT']) as $mapcode) {
-			$arr_count = array_merge($arr_count, $arr_mapping[$collection_id]['SNOMED CT'][$mapcode]);
-		}
-		echo '<td>' . count($arr_count) . '</td>';
+		$c = $arr_collection[$collection_id];
+		$count_mapped_concepts = OclCompare::countConceptsWithMapping($coll_source, $cc, $c, $mapsource);
+		$count_unique_mapcodes = OclCompare::countUniqueMappings($coll_source, $cc, $c, $mapsource);
+		echo '<td>' . $count_mapped_concepts . ' / ' . $count_unique_mapcodes . '</td>';
 	}
-	echo '</tr>';
 
-// unique SNOMED CT maps
-	echo '<tr>';
-	echo '<td>Unique SNOMED CT Maps</td>';
-	foreach (array_keys($arr_collection) as $collection_id) {
-		echo '<td>'. count($arr_mapping[$collection_id]['SNOMED CT']) . '</td>';
-	}
-	echo '</tr>';
-
-// concepts with ICD-10 mapping
-	echo '<tr>';
-	echo '<td>Concepts w/ ICD-10-WHO Mapping</td>';
-	foreach (array_keys($arr_collection) as $collection_id) 
+	// Iterate through the column groups
+	foreach ($arrGroup as $group) 
 	{
-		$arr_count = array();
-		foreach (array_keys($arr_mapping[$collection_id]['ICD-10-WHO']) as $mapcode) {
-			$arr_count = array_merge($arr_count, $arr_mapping[$collection_id]['ICD-10-WHO'][$mapcode]);
+		// Iterate through columns
+		foreach ($group->arr_column as $column) 
+		{
+			$c = $column->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
+			$count_mapped_concepts = OclCompare::countConceptsWithMapping($coll_source, $cc, $c, $mapsource);
+			$count_unique_mapcodes = OclCompare::countUniqueMappings($coll_source, $cc, $c, $mapsource);
+			echo '<td>' . $count_mapped_concepts . ' / ' . $count_unique_mapcodes . '</td>';
 		}
-		echo '<td>' . count($arr_count) . '</td>';
-	}
-	echo '</tr>';
 
-// unique ICD-10 maps
-	echo '<tr>';
-	echo '<td>Unique ICD-10-WHO Maps</td>';
-	foreach (array_keys($arr_collection) as $collection_id) {
-		echo '<td>' . count($arr_mapping[$collection_id]['ICD-10-WHO']) . '</td>';
-	}
-	echo '</tr>';
-
-// concepts with LOINC mapping
-	echo '<tr>';
-	echo '<td>Concepts w/ LOINC Mapping</td>';
-	foreach (array_keys($arr_collection) as $collection_id) 
-	{
-		$arr_count = array();
-		foreach (array_keys($arr_mapping[$collection_id]['LOINC']) as $mapcode) {
-			$arr_count = array_merge($arr_count, $arr_mapping[$collection_id]['LOINC'][$mapcode]);
+		// Subtotal
+		if ($group->display_subtotal_column) {
+			$c = $group->col_subtotal->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
+			$count_mapped_concepts = OclCompare::countConceptsWithMapping($coll_source, $cc, $c, $mapsource);
+			$count_unique_mapcodes = OclCompare::countUniqueMappings($coll_source, $cc, $c, $mapsource);
+			echo '<td class="subtotal">' . $count_mapped_concepts . ' / ' . $count_unique_mapcodes . '</td>';
 		}
-		echo '<td>' . count($arr_count) . '</td>';
 	}
-	echo '</tr>';
 
-// unique LOINC maps
-	echo '<tr>';
-	echo '<td>Unique LOINC Maps</td>';
-	foreach (array_keys($arr_collection) as $collection_id) {
-		echo '<td>' . count($arr_mapping[$collection_id]['LOINC']) . '</td>';
-	}
-	echo '</tr>';
-*/
+	// Grand total
+	$c = $colGrandTotal->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
+	$count_mapped_concepts = OclCompare::countConceptsWithMapping($coll_source, $cc, $c, $mapsource);
+	$count_unique_mapcodes = OclCompare::countUniqueMappings($coll_source, $cc, $c, $mapsource);
+	echo '<td class="grandtotal">' . $count_mapped_concepts . ' / ' . $count_unique_mapcodes . '</td>';
+}
 
+echo '</tfoot>';
 echo "</table>";
-
 
 
 /****************************************************************************************
@@ -457,7 +482,22 @@ echo "</table>";
 class OclCompare
 {
 
-   public static function getCollectionCombinations($arr_collection_id,$min_elements=0)
+	public static function countConceptsWithMapping($coll_source, $cc, $c, $mapsource)
+	{
+		$arr_mapping = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
+		$arr_count = array();
+		foreach (array_keys($arr_mapping) as $mapcode) {
+			$arr_count = array_merge($arr_count, $arr_mapping[$mapcode]);
+		}
+		return count($arr_count);
+	}
+	public static function countUniqueMappings($coll_source, $cc, $c, $mapsource)
+	{
+		$arr_mapping = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
+		return count($arr_mapping);
+	}
+
+    public static function getCollectionCombinations($arr_collection_id,$min_elements=0)
     {
         // Convert collection_id array into format that can be used by OclCompare::getArrayCombinations
         $arr_combo = array();
@@ -613,3 +653,5 @@ class OclComparisonColumn {
 }
 
 ?>
+</body>
+</html>
