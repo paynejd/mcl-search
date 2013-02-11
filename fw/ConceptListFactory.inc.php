@@ -225,7 +225,7 @@ class ConceptListFactory
 	{
 		// Load the concepts
 		$sql_concepts = 
-			'select cd.dict_name, clm.concept_id ' .
+			'select cd.db_name, clm.concept_id ' .
 			'from mcl.concept_list_map clm ' . 
 			'left join mcl.concept_dict cd on cd.dict_id = clm.dict_id ' .
 			'where clm.concept_list_id = ' . $cld->getListId() .
@@ -239,7 +239,7 @@ class ConceptListFactory
 		// Put the data in to the ConceptList object
 		$cl = new ConceptList($cld);
 		while ($row = mysql_fetch_assoc($rsc_concepts)) {
-			$cl->addConcept($row['dict_name'], $row['concept_id']);
+			$cl->addConcept($row['db_name'], $row['concept_id']);
 		}
 
 		return $cl;
@@ -254,7 +254,7 @@ class ConceptListFactory
 		// Load the concept ids from the concept map source
 		$sql_concepts = 
 			'select cm.concept_id ' . 
-			'from ' . $dict_name . '.concept_map cm ' . 
+			'from ' . $cld->dict_name . '.concept_map cm ' . 
 			'where cm.source = ' . $cld->getListId();
 		$rsc_concepts = mysql_query($sql_concepts, $this->getConnection());
 		if (!$rsc_concepts) {
@@ -412,9 +412,9 @@ class ConceptListFactory
 
 		// Get the dictionary ids
 		$arr_dict_id = $this->getDictionariesArray();
-		$arr_dictname_dictid = array();
+		$arr_dbname_dictid = array();
 		foreach (array_keys($arr_dict_id) as $k) {
-			$arr_dictname_dictid[  $arr_dict_id[$k]['dict_name']  ]  =  $arr_dict_id[$k]['dict_id'];
+			$arr_dbname_dictid[  $arr_dict_id[$k]['db_name']  ]  =  $arr_dict_id[$k]['dict_id'];
 		}
 
 		// Insert the list
@@ -435,9 +435,11 @@ class ConceptListFactory
 			// Build the sql statement
 			$sql_insert_concepts = ''; 
 			$arr_cl = $cl->getArray();
-			foreach (array_keys($arr_cl) as $dict_name) {
-				foreach ($arr_cl[$dict_name] as $concept_id) {
-					$dict_id = $arr_dictname_dictid[$dict_name];
+			foreach (array_keys($arr_cl) as $dict_db) 
+			{
+				foreach ($arr_cl[$dict_db] as $concept_id) 
+				{
+					$dict_id = $arr_dbname_dictid[$dict_db];
 					if ($sql_insert_concepts)  $sql_insert_concepts .= ',';
 					$sql_insert_concepts .= '(' . $new_concept_list_id . ',' . $dict_id . ',' . $concept_id . ')';
 				}
