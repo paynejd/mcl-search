@@ -110,7 +110,7 @@ define(  'OCL_COMPARE_STATE_SUMMARY'           ,  'SUMMARY'  );
 
 	if ($debug) echo "<pre>", var_dump($arr_collection), "</pre><hr />";
 
-// Load Concept Collections - this gets the rest of the metadata that we want (just mappings for this script)
+// Load Concept Collections - this loads the other concept metadata (just mappings for the comparison tool)
 	$cc                =  null  ;
 	$cc_merge          =  null  ;
 	$ccf               =  new ConceptCollectionFactory()  ;
@@ -125,21 +125,12 @@ define(  'OCL_COMPARE_STATE_SUMMARY'           ,  'SUMMARY'  );
 	foreach ($arr_collection_id as $collection_id)
 	{
 		$cc_merge  =  $ccf->NewCollectionFromListId($collection_id)  ;
-		echo '<p><b>Collection ID ' . $collection_id . '</b>: ' . $cc_merge->getVisibleCount() . ' of ' . 
-				$arr_collection[$collection_id]->getCount() . ' concept(s) loaded...</p>';
+		echo '<div><b>Collection ID ' . $collection_id . '</b>: ' . $cc_merge->getVisibleCount() . ' of ' . 
+				$arr_collection[$collection_id]->getCount() . ' concept(s) loaded...<br />';
 		if (  $cc  )  $cc->merge(  $cc_merge  )  ;
 		else  $cc  =  $cc_merge  ;
 	}
-	echo '<p><b>Merged Collection: </b>Metadata loaded for ' . $cc->getVisibleCount() . ' concept(s)...</p>';
-
-// Build Mapping Array for each of the mapping sources of interest for each collection
-	$arr_mapping = array();
-	foreach ($arr_collection_id as $collection_id) {
-		$arr_mapping[$collection_id]['SNOMED CT' ] = OclCompare::getMappings($coll_source, $cc, $arr_collection[$collection_id], 'SNOMED CT'  );
-		$arr_mapping[$collection_id]['SNOMED NP' ] = OclCompare::getMappings($coll_source, $cc, $arr_collection[$collection_id], 'SNOMED NP'  );
-		$arr_mapping[$collection_id]['LOINC'     ] = OclCompare::getMappings($coll_source, $cc, $arr_collection[$collection_id], 'LOINC'      );
-		$arr_mapping[$collection_id]['ICD-10-WHO'] = OclCompare::getMappings($coll_source, $cc, $arr_collection[$collection_id], 'ICD-10-WHO' );
-	}
+	echo '<b>Merged Collection: </b>Metadata loaded for ' . $cc->getVisibleCount() . ' concept(s)...</div>';
 
 // Setup comparison states
 	$arr_state = array();
@@ -262,6 +253,7 @@ foreach ($arrGroup as $group)
 <style type="text/css">
 table.compare {
 	background: #ccc;
+	width:100%;
 }
 table.compare th, 
 table.compare td {
@@ -287,6 +279,12 @@ table.compare td.grandtotal {
 	background-color: #9af;
 	font-size: 11pt;
 	font-weight: bold;
+}
+a {
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
 }
 </style>
 </head>
@@ -355,19 +353,25 @@ echo '<tbody>';
 			foreach ($group->arr_column as $column) 
 			{
 				$c = $column->getStateConceptList($state_id);
-				echo '<td>' . $c->getCount() . '</td>';
+				echo '<td class="cell">';
+				echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+				echo $c->getCount() . '</a></td>';
 			}
 
 			// Subtotal
 			if ($group->display_subtotal_column) {
 				$c = $group->col_subtotal->getStateConceptList($state_id);
-				echo '<td class="subtotal">' . $c->getCount() . '</td>';
+				echo '<td class="subtotal">';
+				echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+				echo $c->getCount() . '</a></td>';
 			}
 		}
 
 		// Grand total
 		$c = $colGrandTotal->getStateConceptList($state_id);
-		echo '<td class="grandtotal">' . $c->getCount() . '</td>';
+		echo '<td class="grandtotal">';
+		echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+		echo $c->getCount() . '</a></td>';
 
 		// End
 		echo '</tr>';
@@ -388,9 +392,10 @@ echo '<tfoot>';
 	echo '<td class="rowheader">Number Concepts in Set</td>';
 	foreach (array_keys($arr_collection) as $collection_id) 
 	{
-		echo '<td>';
-		echo $arr_collection[$collection_id]->getCount() . '<br />';
-		echo '</td>';
+		$c = $arr_collection[$collection_id];
+		echo '<td class="rowtotal">';
+		echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+		echo $c->getCount() . '</a></td>';
 	}
 
 // Iterate through column groups
@@ -400,19 +405,25 @@ echo '<tfoot>';
 		foreach ($group->arr_column as $column) 
 		{
 			$c = $column->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
-			echo '<td>' . $c->getCount() . '</td>';
+			echo '<td class="rowtotal">';
+			echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+			echo $c->getCount() . '</a></td>';
 		}
 
 		// Subtotal
 		if ($group->display_subtotal_column) {
 			$c = $group->col_subtotal->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
-			echo '<td class="subtotal">' . $c->getCount() . '</td>';
+			echo '<td class="rowtotal subtotal">';
+			echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+			echo $c->getCount() . '</a></td>';
 		}
 	}
 
-// TODO: Grant Total
+// TODO: Grand Total
 	$c = $colGrandTotal->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
-	echo '<td class="grandtotal">' . $c->getCount() . '</td>';
+	echo '<td class="rowtotal grandtotal">';
+	echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+	echo $c->getCount() . '</a></td>';
 
 // End
 	echo '</tr>';
@@ -438,9 +449,13 @@ foreach ($arr_map_summary as $mapsource => $mapsource_name)
 	foreach (array_keys($arr_collection) as $collection_id) 
 	{
 		$c = $arr_collection[$collection_id];
-		$count_mapped_concepts = OclCompare::countConceptsWithMapping($coll_source, $cc, $c, $mapsource);
-		$count_unique_mapcodes = OclCompare::countUniqueMappings($coll_source, $cc, $c, $mapsource);
-		echo '<td>' . $count_mapped_concepts . ' / ' . $count_unique_mapcodes . '</td>';
+		$arrMappedConcepts = OclCompare::getConceptsWithMapping($coll_source, $cc, $c, $mapsource);
+		$arrUniqueMappings = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
+		echo '<td>';
+		echo '<a href="javascript:document.getElementById(\'results\').src = \'' . OclCompare::getLink(implode(array_keys($arrMappedConcepts),',')) . '\';">' . count($arrMappedConcepts) . '<a>';
+		echo ' / '; 
+		echo '<a href="javascript:alert(\'' . implode(array_keys($arrUniqueMappings),',') . '\');">' . count($arrUniqueMappings) . '</a>';
+		echo '</td>';
 	}
 
 	// Iterate through the column groups
@@ -450,30 +465,44 @@ foreach ($arr_map_summary as $mapsource => $mapsource_name)
 		foreach ($group->arr_column as $column) 
 		{
 			$c = $column->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
-			$count_mapped_concepts = OclCompare::countConceptsWithMapping($coll_source, $cc, $c, $mapsource);
-			$count_unique_mapcodes = OclCompare::countUniqueMappings($coll_source, $cc, $c, $mapsource);
-			echo '<td>' . $count_mapped_concepts . ' / ' . $count_unique_mapcodes . '</td>';
+			$arrMappedConcepts = OclCompare::getConceptsWithMapping($coll_source, $cc, $c, $mapsource);
+			$arrUniqueMappings = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
+			echo '<td>';
+			echo '<a href="javascript:document.getElementById(\'results\').src = \'' . OclCompare::getLink(implode(array_keys($arrMappedConcepts),',')) . '\';">' . count($arrMappedConcepts) . '<a>';
+			echo ' / '; 
+			echo '<a href="javascript:alert(\'' . implode(array_keys($arrUniqueMappings),',') . '\');">' . count($arrUniqueMappings) . '</a>';
+			echo '</td>';
 		}
 
 		// Subtotal
 		if ($group->display_subtotal_column) {
 			$c = $group->col_subtotal->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
-			$count_mapped_concepts = OclCompare::countConceptsWithMapping($coll_source, $cc, $c, $mapsource);
-			$count_unique_mapcodes = OclCompare::countUniqueMappings($coll_source, $cc, $c, $mapsource);
-			echo '<td class="subtotal">' . $count_mapped_concepts . ' / ' . $count_unique_mapcodes . '</td>';
+			$arrMappedConcepts = OclCompare::getConceptsWithMapping($coll_source, $cc, $c, $mapsource);
+			$arrUniqueMappings = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
+			echo '<td class="subtotal">';
+			echo '<a href="javascript:document.getElementById(\'results\').src = \'' . OclCompare::getLink(implode(array_keys($arrMappedConcepts),',')) . '\';">' . count($arrMappedConcepts) . '<a>';
+			echo ' / '; 
+			echo '<a href="javascript:alert(\'' . implode(array_keys($arrUniqueMappings),',') . '\');">' . count($arrUniqueMappings) . '</a>';
+			echo '</td>';
 		}
 	}
 
 	// Grand total
 	$c = $colGrandTotal->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
-	$count_mapped_concepts = OclCompare::countConceptsWithMapping($coll_source, $cc, $c, $mapsource);
-	$count_unique_mapcodes = OclCompare::countUniqueMappings($coll_source, $cc, $c, $mapsource);
-	echo '<td class="grandtotal">' . $count_mapped_concepts . ' / ' . $count_unique_mapcodes . '</td>';
+	$arrMappedConcepts = OclCompare::getConceptsWithMapping($coll_source, $cc, $c, $mapsource);
+	$arrUniqueMappings = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
+	echo '<td class="grandtotal">';
+	echo '<a href="javascript:document.getElementById(\'results\').src = \'' . OclCompare::getLink(implode(array_keys($arrMappedConcepts),',')) . '\';">' . count($arrMappedConcepts) . '<a>';
+	echo ' / '; 
+	echo '<a href="javascript:alert(\'' . implode(array_keys($arrUniqueMappings),',') . '\');">' . count($arrUniqueMappings) . '</a>';
+	echo '</td>';
 }
 
 echo '</tfoot>';
 echo "</table>";
 
+echo '<br />';
+echo '<iframe id="results" width="100%" height="450"></iframe>';
 
 /****************************************************************************************
 **  SUPPORT OBJECTS
@@ -481,22 +510,41 @@ echo "</table>";
 
 class OclCompare
 {
-
-	public static function countConceptsWithMapping($coll_source, $cc, $c, $mapsource)
+	public static function getLink($csv)
 	{
-		$arr_mapping = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
-		$arr_count = array();
-		foreach (array_keys($arr_mapping) as $mapcode) {
-			$arr_count = array_merge($arr_count, $arr_mapping[$mapcode]);
+		// Input  = CIEL:1,AMPATH:5
+		// Output = full_id:CIEL_5 full_id:AMPATH_5
+		$csv = trim($csv);
+		if ($csv) {
+			$arr_concept = explode( ',', str_replace(':', '_', $csv) );
+			$link = 'full_id:' . implode(' full_id:', $arr_concept);
+			$arr_source_in  = array('openmrs','default_concept_dict','pih_concept_dict','ampath_concept_dict','openmrs19','pih19');
+			$arr_source_out = array('CIEL'   ,'CIEL'                ,'PIH'             ,'AMPATH'             ,'CIEL'     ,'PIH'  );
+			$link = str_replace($arr_source_in, $arr_source_out, $link);
+			return 'http://www.openconceptlab.org/d/openconceptlab/search.php?q=' . urlencode($link);
 		}
-		return count($arr_count);
-	}
-	public static function countUniqueMappings($coll_source, $cc, $c, $mapsource)
-	{
-		$arr_mapping = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
-		return count($arr_mapping);
+		return $csv;
 	}
 
+	/**
+	 * Returns an array of concepts from the passed concept list that have at least one mapping
+	 * to the specified map source.
+	 */
+	public static function getConceptsWithMapping($coll_source, $cc, $c, $mapsource)
+	{
+		$arr_mapping = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
+		$arrConceptsWithMapping = array();
+		foreach (array_keys($arr_mapping) as $mapcode) {
+			$arrConceptsWithMapping = array_merge($arrConceptsWithMapping, $arr_mapping[$mapcode]);
+		}
+		return $arrConceptsWithMapping;
+	}
+
+	/**
+	 * Returns a multi-dimensional array representing the possible combinations of comparison states
+	 * for the passed collection IDs. Use $min_elements to set the minimum number of collections that
+	 * must be in a comparison state.
+	 */
     public static function getCollectionCombinations($arr_collection_id,$min_elements=0)
     {
         // Convert collection_id array into format that can be used by OclCompare::getArrayCombinations
@@ -510,6 +558,11 @@ class OclCompare
         OclCompare::getArrayCombinations($combinations, $arr_combo, $min_elements);
         return $combinations;
     }
+
+    /**
+     * Recursive method to get an array of possible combinations of the elements in the passed multi-dimensional
+     * array. Use $min_elements to set the minimum number of elements that must be in any output combination.
+     */
     public static function getArrayCombinations(&$combinations, $elements, $min_elements=0, $batch=array(), $i=0)
     {
         if ($i >= count($elements)) 
@@ -555,7 +608,7 @@ class OclCompare
 					foreach ($arr_source_name as $source_name) {
 						$arr_mapping = $c->getMappingsBySourceName($source_name);
 						foreach ($arr_mapping as $map) {
-							$arr_mapping_cl[$map->source_code][$css_dict->dict_id.'_'.$concept_id] = $css_dict->dict_id.'_'.$concept_id;
+							$arr_mapping_cl[$map->source_code][$css_dict->dict_db.':'.$concept_id] = $css_dict->dict_db.':'.$concept_id;
 						}
 					}
 				}
@@ -580,22 +633,22 @@ class OclCompare
 		{
 			if (isset($arr_mapping_c2[$mapcode])) 
 			{
-				foreach ($arr_mapping_c1[$mapcode] as $str_dictid_conceptid) 
+				foreach ($arr_mapping_c1[$mapcode] as $str_dictdb_conceptid) 
 				{
-					//if (  !isset($arr_mapping_c2[$mapcode][$str_dictid_conceptid]) || 
+					//if (  !isset($arr_mapping_c2[$mapcode][$str_dictdb_conceptid]) || 
 					//	  count($arr_mapping_c2[$mapcode]) > 1  ||
 					//	  count($arr_mapping_c1[$mapcode]) > 1
 					//   )
 					//{
 
-						foreach ($arr_mapping_c1[$mapcode] as $str_dictid_conceptid) {
-							$arr_dict_concept = explode('_', $str_dictid_conceptid);
+						foreach ($arr_mapping_c1[$mapcode] as $str_dictdb_conceptid) {
+							$arr_dict_concept = explode(':', $str_dictdb_conceptid);
 							$css_dict = $coll_source->getDictionary($arr_dict_concept[0]);
 							$cl_match->addConcept($css_dict->dict_db, $arr_dict_concept[1]);
 						}
 
-						foreach ($arr_mapping_c2[$mapcode] as $str_dictid_conceptid) {
-							$arr_dict_concept = explode('_', $str_dictid_conceptid);
+						foreach ($arr_mapping_c2[$mapcode] as $str_dictdb_conceptid) {
+							$arr_dict_concept = explode(':', $str_dictdb_conceptid);
 							$css_dict = $coll_source->getDictionary($arr_dict_concept[0]);
 							$cl_match->addConcept($css_dict->dict_db, $arr_dict_concept[1]);
 						}
