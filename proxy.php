@@ -28,6 +28,6 @@
 		trigger_error('curl 1 failed');
 		exit();
 	}
-	echo $url, var_dump( $json_search );
+	echo $json_search;
 
 ?>

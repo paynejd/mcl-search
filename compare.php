@@ -288,7 +288,6 @@ a:hover {
 }
 </style>
 <script>
-/*
 var xmlhttp;
 if (window.XMLHttpRequest)
   {// code for IE7+, Firefox, Chrome, Opera, Safari
@@ -298,24 +297,33 @@ else
   {// code for IE6, IE5
   xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
   }
-  */
+xmlhttp.onreadystatechange=function()
+  {
+  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+    {
+	    var out = document.getElementById("output");
+	    var r = JSON.parse(xmlhttp.responseText);
+	    out.innerHTML = 'Output: ' + r.response.numFound + ' items found via search... <ul>';
+	    for(var i = 0; i < r.response.docs.length; i++) {
+	    	c = r.response.docs[i];
+	    	out.innerHTML += '<li>' + c.id + ' - ' + c.pname + '</li>';
+	    }
+	    out.innerHTML += '</ul>';
+    	//out.innerHTML += xmlhttp.responseText;
+	    //alert(r.response.numFound);
+
+    }
+  }
 
 function loadTerms(csv_item) {
 	//var arr_item = csv_item.split(',');
-	document.getElementById('results').innerHTML = csv_item.replace(/,/g, '<br />');
-	/*
-	xmlhttp.onreadystatechange=function()
-	  {
-	  if (xmlhttp.readyState==4 && xmlhttp.status==200)
-	    {
-	    document.getElementById("output").innerHTML=xmlhttp.responseText;
-	    }
-	  }
+	document.getElementById('results').innerHTML = 'Full list: <br /> ' + csv_item.replace(/,/g, '<br />');
+	csv_item = csv_item.replace(/CIEL:/g,'full_id:CIEL_');
+	csv_item = csv_item.replace(/,/g,' ');
   	xmlhttp.open("POST","proxy.php?url=" + 
   			encodeURI('http://openconceptlab.org:8080/solr/db/select') + 
-  			"&wt=json&fl=*&start=0&rows=20&q=" + encodeURI(csv_item),true);
+  			"&wt=json&fl=*&start=0&rows=150&q=" + encodeURI(csv_item),true);
 	xmlhttp.send();
-	*/
 }
 </script>
 </head>
@@ -535,6 +543,7 @@ echo "</table>";
 
 echo '<br />';
 echo '<div id="output"><em>Output</em></div>';
+echo '<br />';
 echo '<div id="results"><em>Click on a grid cell to view relevant concepts and map codes.</em></div>';
 
 /****************************************************************************************
