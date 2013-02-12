@@ -287,6 +287,37 @@ a:hover {
 	text-decoration: underline;
 }
 </style>
+<script>
+/*
+var xmlhttp;
+if (window.XMLHttpRequest)
+  {// code for IE7+, Firefox, Chrome, Opera, Safari
+  xmlhttp=new XMLHttpRequest();
+  }
+else
+  {// code for IE6, IE5
+  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+  }
+  */
+
+function loadTerms(csv_item) {
+	//var arr_item = csv_item.split(',');
+	document.getElementById('results').innerHTML = csv_item.replace(/,/g, '<br />');
+	/*
+	xmlhttp.onreadystatechange=function()
+	  {
+	  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+	    {
+	    document.getElementById("output").innerHTML=xmlhttp.responseText;
+	    }
+	  }
+  	xmlhttp.open("POST","proxy.php?url=" + 
+  			encodeURI('http://openconceptlab.org:8080/solr/db/select') + 
+  			"&wt=json&fl=*&start=0&rows=20&q=" + encodeURI(csv_item),true);
+	xmlhttp.send();
+	*/
+}
+</script>
 </head>
 <body>
 <?php
@@ -354,7 +385,7 @@ echo '<tbody>';
 			{
 				$c = $column->getStateConceptList($state_id);
 				echo '<td class="cell">';
-				echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+				echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts($c->getCsv()) . '\');">';
 				echo $c->getCount() . '</a></td>';
 			}
 
@@ -362,7 +393,7 @@ echo '<tbody>';
 			if ($group->display_subtotal_column) {
 				$c = $group->col_subtotal->getStateConceptList($state_id);
 				echo '<td class="subtotal">';
-				echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+				echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts($c->getCsv()) . '\');">';
 				echo $c->getCount() . '</a></td>';
 			}
 		}
@@ -370,7 +401,7 @@ echo '<tbody>';
 		// Grand total
 		$c = $colGrandTotal->getStateConceptList($state_id);
 		echo '<td class="grandtotal">';
-		echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+		echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts($c->getCsv()) . '\');">';
 		echo $c->getCount() . '</a></td>';
 
 		// End
@@ -394,7 +425,7 @@ echo '<tfoot>';
 	{
 		$c = $arr_collection[$collection_id];
 		echo '<td class="rowtotal">';
-		echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+		echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts($c->getCsv()) . '\');">';
 		echo $c->getCount() . '</a></td>';
 	}
 
@@ -406,7 +437,7 @@ echo '<tfoot>';
 		{
 			$c = $column->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
 			echo '<td class="rowtotal">';
-			echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+			echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts($c->getCsv()) . '\');">';
 			echo $c->getCount() . '</a></td>';
 		}
 
@@ -414,7 +445,7 @@ echo '<tfoot>';
 		if ($group->display_subtotal_column) {
 			$c = $group->col_subtotal->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
 			echo '<td class="rowtotal subtotal">';
-			echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+			echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts($c->getCsv()) . '\');">';
 			echo $c->getCount() . '</a></td>';
 		}
 	}
@@ -422,7 +453,7 @@ echo '<tfoot>';
 // TODO: Grand Total
 	$c = $colGrandTotal->getStateConceptList(OCL_COMPARE_STATE_SUMMARY);
 	echo '<td class="rowtotal grandtotal">';
-	echo '<a href="javascript:alert(\'' . $c->getCsv() . '\');">';
+	echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts($c->getCsv()) . '\');">';
 	echo $c->getCount() . '</a></td>';
 
 // End
@@ -432,6 +463,7 @@ echo '<tfoot>';
 /****************************************************************************************
 **  DISPLAY - MAPPING TOTALS
 ****************************************************************************************/
+
 $arr_map_summary = array(
 		'SNOMED CT'   => 'SNOMED CT',
 		'SNOMED NP'   => 'SNOMED CT (Not Preferred)',
@@ -452,9 +484,9 @@ foreach ($arr_map_summary as $mapsource => $mapsource_name)
 		$arrMappedConcepts = OclCompare::getConceptsWithMapping($coll_source, $cc, $c, $mapsource);
 		$arrUniqueMappings = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
 		echo '<td>';
-		echo '<a href="javascript:document.getElementById(\'results\').src = \'' . OclCompare::getLink(implode(array_keys($arrMappedConcepts),',')) . '\';">' . count($arrMappedConcepts) . '<a>';
+		echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts(implode(array_keys($arrMappedConcepts),',')) . '\');">' . count($arrMappedConcepts) . '<a>';
 		echo ' / '; 
-		echo '<a href="javascript:alert(\'' . implode(array_keys($arrUniqueMappings),',') . '\');">' . count($arrUniqueMappings) . '</a>';
+		echo '<a href="javascript:loadTerms(\'' . $mapsource.':'.implode(array_keys($arrUniqueMappings),','.$mapsource.':') . '\');">' . count($arrUniqueMappings) . '</a>';
 		echo '</td>';
 	}
 
@@ -468,9 +500,9 @@ foreach ($arr_map_summary as $mapsource => $mapsource_name)
 			$arrMappedConcepts = OclCompare::getConceptsWithMapping($coll_source, $cc, $c, $mapsource);
 			$arrUniqueMappings = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
 			echo '<td>';
-			echo '<a href="javascript:document.getElementById(\'results\').src = \'' . OclCompare::getLink(implode(array_keys($arrMappedConcepts),',')) . '\';">' . count($arrMappedConcepts) . '<a>';
+			echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts(implode(array_keys($arrMappedConcepts),',')) . '\');">' . count($arrMappedConcepts) . '<a>';
 			echo ' / '; 
-			echo '<a href="javascript:alert(\'' . implode(array_keys($arrUniqueMappings),',') . '\');">' . count($arrUniqueMappings) . '</a>';
+			echo '<a href="javascript:loadTerms(\'' . $mapsource.':'.implode(array_keys($arrUniqueMappings),','.$mapsource.':') . '\');">' . count($arrUniqueMappings) . '</a>';
 			echo '</td>';
 		}
 
@@ -480,9 +512,9 @@ foreach ($arr_map_summary as $mapsource => $mapsource_name)
 			$arrMappedConcepts = OclCompare::getConceptsWithMapping($coll_source, $cc, $c, $mapsource);
 			$arrUniqueMappings = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
 			echo '<td class="subtotal">';
-			echo '<a href="javascript:document.getElementById(\'results\').src = \'' . OclCompare::getLink(implode(array_keys($arrMappedConcepts),',')) . '\';">' . count($arrMappedConcepts) . '<a>';
+			echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts(implode(array_keys($arrMappedConcepts),',')) . '\');">' . count($arrMappedConcepts) . '<a>';
 			echo ' / '; 
-			echo '<a href="javascript:alert(\'' . implode(array_keys($arrUniqueMappings),',') . '\');">' . count($arrUniqueMappings) . '</a>';
+			echo '<a href="javascript:loadTerms(\'' . $mapsource.':'.implode(array_keys($arrUniqueMappings),','.$mapsource.':') . '\');">' . count($arrUniqueMappings) . '</a>';
 			echo '</td>';
 		}
 	}
@@ -492,9 +524,9 @@ foreach ($arr_map_summary as $mapsource => $mapsource_name)
 	$arrMappedConcepts = OclCompare::getConceptsWithMapping($coll_source, $cc, $c, $mapsource);
 	$arrUniqueMappings = OclCompare::getMappings($coll_source, $cc, $c, $mapsource);
 	echo '<td class="grandtotal">';
-	echo '<a href="javascript:document.getElementById(\'results\').src = \'' . OclCompare::getLink(implode(array_keys($arrMappedConcepts),',')) . '\';">' . count($arrMappedConcepts) . '<a>';
+	echo '<a href="javascript:loadTerms(\'' . OclCompare::reformatConcepts(implode(array_keys($arrMappedConcepts),',')) . '\');">' . count($arrMappedConcepts) . '<a>';
 	echo ' / '; 
-	echo '<a href="javascript:alert(\'' . implode(array_keys($arrUniqueMappings),',') . '\');">' . count($arrUniqueMappings) . '</a>';
+	echo '<a href="javascript:loadTerms(\'' . $mapsource.':'.implode(array_keys($arrUniqueMappings),','.$mapsource.':') . '\');">' . count($arrUniqueMappings) . '</a>';
 	echo '</td>';
 }
 
@@ -502,7 +534,8 @@ echo '</tfoot>';
 echo "</table>";
 
 echo '<br />';
-echo '<iframe id="results" width="100%" height="450"></iframe>';
+echo '<div id="output"><em>Output</em></div>';
+echo '<div id="results"><em>Click on a grid cell to view relevant concepts and map codes.</em></div>';
 
 /****************************************************************************************
 **  SUPPORT OBJECTS
@@ -510,20 +543,20 @@ echo '<iframe id="results" width="100%" height="450"></iframe>';
 
 class OclCompare
 {
-	public static function getLink($csv)
+	public static function reformatConcepts($csv_in)
 	{
 		// Input  = CIEL:1,AMPATH:5
 		// Output = full_id:CIEL_5 full_id:AMPATH_5
-		$csv = trim($csv);
-		if ($csv) {
-			$arr_concept = explode( ',', str_replace(':', '_', $csv) );
-			$link = 'full_id:' . implode(' full_id:', $arr_concept);
+		$csv_in = trim($csv_in);
+		if ($csv_in) {
 			$arr_source_in  = array('openmrs','default_concept_dict','pih_concept_dict','ampath_concept_dict','openmrs19','pih19');
 			$arr_source_out = array('CIEL'   ,'CIEL'                ,'PIH'             ,'AMPATH'             ,'CIEL'     ,'PIH'  );
-			$link = str_replace($arr_source_in, $arr_source_out, $link);
-			return 'http://www.openconceptlab.org/d/openconceptlab/search.php?q=' . urlencode($link);
+			//$arr_concept = explode( ',', str_replace(':', '_', $csv_in) );
+			//$out = 'full_id:' . implode(' full_id:', $arr_concept);
+			$out = str_replace($arr_source_in, $arr_source_out, $csv_in);
+			return $out;
 		}
-		return $csv;
+		return $csv_in;
 	}
 
 	/**
