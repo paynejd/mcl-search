@@ -301,17 +301,20 @@ xmlhttp.onreadystatechange=function()
   {
   if (xmlhttp.readyState==4 && xmlhttp.status==200)
     {
-	    var out = document.getElementById("output");
 	    var r = JSON.parse(xmlhttp.responseText);
-	    out.innerHTML = 'Output: ' + r.response.numFound + ' items found via search... <ul>';
-	    for(var i = 0; i < r.response.docs.length; i++) {
-	    	c = r.response.docs[i];
-	    	out.innerHTML += '<li>' + c.id + ' - ' + c.pname + '</li>';
-	    }
-	    out.innerHTML += '</ul>';
-    	//out.innerHTML += xmlhttp.responseText;
-	    //alert(r.response.numFound);
-
+	    var out = 'Output:';
+	    if (r.response) out += ' ' + r.response.numFound; else out += ' 0';
+	    out += ' items found via search... <table>';
+		if (r.response) {
+		    for(var i = 0; i < r.response.docs.length; i++) {
+		    	c = r.response.docs[i];
+		    	out += '<tr><td nowrap="true">' + c.dict + '-' + c.id + '</td>';
+		    	out += '<td>' + c.pname + ' [ ' + c.class + ' / ' + c.datatype + ' ] - ' + c.description + '</td></tr>';
+		    }
+		}
+    	out += '<tr><td colspan="2">' + xmlhttp.responseText + '</td></tr>';
+	    out += '</table>';
+	    document.getElementById("output").innerHTML = out;
     }
   }
 
@@ -319,6 +322,8 @@ function loadTerms(csv_item) {
 	//var arr_item = csv_item.split(',');
 	document.getElementById('results').innerHTML = 'Full list: <br /> ' + csv_item.replace(/,/g, '<br />');
 	csv_item = csv_item.replace(/CIEL:/g,'full_id:CIEL_');
+	csv_item = csv_item.replace(/SNOMED NP:/g,'SNOMED\\ NP:');
+	csv_item = csv_item.replace(/SNOMED CT:/g,'SNOMED\\ CT:');
 	csv_item = csv_item.replace(/,/g,' ');
   	xmlhttp.open("POST","proxy.php?url=" + 
   			encodeURI('http://openconceptlab.org:8080/solr/db/select') + 
