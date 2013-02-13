@@ -1,26 +1,25 @@
 <?php
 
-// Set the url
-	$url = $_GET['url'];
-	unset($_GET['url']);
+$arr_param = array_merge($_GET, $_POST);
 
-// Convert the search query (if necessary)
-	//if (isset($_GET['q'])) {
-	//	$url .
-	//}
-	//unset($_GET['q']);
+// Set the url
+	$url = $arr_param['url'];
+	unset($arr_param['url']);
 
 // Append the rest of the parameters
-	if (count($_GET)) {
+/*	if (count($arr_param)) {
 		$url .= '?';
-		foreach ($_GET as $k => $v) {
+		foreach ($arr_param as $k => $v) {
 			$url .= urlencode($k) . '=' . urlencode($v) . '&';
 		}
 	}
+*/
 
 // Perform the query
 	$ch   =  curl_init($url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POST, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $arr_param);
 	$json_search =  curl_exec($ch);	// Website returns json
 	curl_close($ch);
 	if (!$json_search) {
