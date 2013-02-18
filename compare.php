@@ -127,7 +127,7 @@ define(  'OCL_COMPARE_STATE_SUMMARY'           ,  'SUMMARY'  );
 		$cc_merge  =  $ccf->NewCollectionFromListId($collection_id)  ;
 		echo '<div><b>Collection ID ' . $collection_id . '</b>: ' . $cc_merge->getVisibleCount() . ' of ' . 
 				$arr_collection[$collection_id]->getCount() . ' concept(s) loaded...<br />';
-		if (  $cc  )  $cc->merge(  $cc_merge  )  ;
+		if (  $cc  )  $cc->merge(  $cc_merge  );
 		else  $cc  =  $cc_merge  ;
 	}
 	echo '<b>Merged Collection: </b>Metadata loaded for ' . $cc->getVisibleCount() . ' concept(s)...</div>';
@@ -280,6 +280,33 @@ table.compare td.grandtotal {
 	font-size: 11pt;
 	font-weight: bold;
 }
+table.results {
+	background: #ccc;
+	width:100%;
+}
+table.results td {
+	padding:3px;
+	background-color: White;
+	text-align: left;
+	font-family: Arial,Sans-Serif;
+	font-size:10pt;
+}
+.c_id {
+	font-weight: bold;
+	color: #08c;
+}
+.c_name {
+	font-weight: bold;
+	color: Black;
+}
+.c_type {
+	font-weight: normal;
+	color: Black;
+}
+.c_desc {
+	font-weight: normal;
+	color: #999;
+}
 a {
 	text-decoration: none;
 }
@@ -302,28 +329,27 @@ xmlhttp.onreadystatechange=function()
   if (xmlhttp.readyState==4 && xmlhttp.status==200)
     {
 	    var r = JSON.parse(xmlhttp.responseText);
-	    var out = 'Output:';
+	    var out = '<strong>Output:</strong> <em>';
 	    if (r.response) out += ' ' + r.response.numFound; else out += ' 0';
-	    out += ' items found via search... <table>';
+	    out += ' items found via search...</em><table class="results">';
+	    out += '<tr><td colspan="2" style="font-size:8pt;padding-bottom:12px;"><em><strong>Query:</strong> ' + JSON.stringify(r.responseHeader.params) + '</em></td></tr>';
 		if (r.response) {
 		    for(var i = 0; i < r.response.docs.length; i++) {
 		    	c = r.response.docs[i];
-		    	out += '<tr><td nowrap="true">' + c.dict + '-' + c.id + '</td>';
-		    	out += '<td>' + c.pname + ' [ ' + c.class + ' / ' + c.datatype + ' ] - ' + c.description + '</td></tr>';
+		    	out += '<tr><td nowrap="true"><span class="c_id">' + c.dict + '-' + c.id + '</span></td>';
+		    	out += '<td><span class="c_name">' + c.pname + '</span> <span class="c_type">[ ' + c.class + ' / ' + c.datatype + ' ]</span> - <span class="c_desc">' + c.description + '</span></td></tr>';
 		    }
 		}
-    	out += '<tr><td colspan="2">' + xmlhttp.responseText + '</td></tr>';
+    	//out += '<tr><td colspan="2">' + xmlhttp.responseText + '</td></tr>';
 	    out += '</table>';
 	    document.getElementById("output").innerHTML = out;
     }
   }
 
 function loadTerms(csv_item) {
-	//var arr_item = csv_item.split(',');
 	document.getElementById('results').innerHTML = 'Full list: <br /> ' + csv_item.replace(/,/g, '<br />');
 	csv_item = csv_item.replace(/CIEL:/g,'full_id:CIEL_');
-	csv_item = csv_item.replace(/SNOMED NP:/g,'SNOMED\\ NP:');
-	csv_item = csv_item.replace(/SNOMED CT:/g,'SNOMED\\ CT:');
+	csv_item = csv_item.replace(/ /g,'\\ ');
 	csv_item = csv_item.replace(/,/g,' ');
   	xmlhttp.open("POST","proxy.php?url=" + 
   			encodeURI('http://openconceptlab.org:8080/solr/db/select') + 
@@ -334,6 +360,8 @@ function loadTerms(csv_item) {
 </head>
 <body>
 <?php
+
+
 /****************************************************************************************
 **  DISPLAY - HEADER
 ****************************************************************************************/
@@ -422,6 +450,7 @@ echo '<tbody>';
 	}
 
 echo '</tbody>';
+
 
 /****************************************************************************************
 **  DISPLAY - COLUMN TOTALS
@@ -547,9 +576,10 @@ echo '</tfoot>';
 echo "</table>";
 
 echo '<br />';
-echo '<div id="output"><em>Output</em></div>';
+echo '<div id="output"><strong>Output</strong></div>';
 echo '<br />';
 echo '<div id="results"><em>Click on a grid cell to view relevant concepts and map codes.</em></div>';
+
 
 /****************************************************************************************
 **  SUPPORT OBJECTS
@@ -559,8 +589,8 @@ class OclCompare
 {
 	public static function reformatConcepts($csv_in)
 	{
-		// Input  = CIEL:1,AMPATH:5
-		// Output = full_id:CIEL_5 full_id:AMPATH_5
+		// Input  = openmrs:1 pih_concept_dict:5
+		// Output = CIEL:5 PIH:5
 		$csv_in = trim($csv_in);
 		if ($csv_in) {
 			$arr_source_in  = array('openmrs','default_concept_dict','pih_concept_dict','ampath_concept_dict','openmrs19','pih19');
@@ -568,6 +598,7 @@ class OclCompare
 			//$arr_concept = explode( ',', str_replace(':', '_', $csv_in) );
 			//$out = 'full_id:' . implode(' full_id:', $arr_concept);
 			$out = str_replace($arr_source_in, $arr_source_out, $csv_in);
+			//$out = str_replace(',', ' ', $out);
 			return $out;
 		}
 		return $csv_in;
