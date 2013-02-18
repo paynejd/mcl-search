@@ -307,6 +307,12 @@ table.results td {
 	font-weight: normal;
 	color: #999;
 }
+table.results td.query {
+	background-color: #eef;
+	color: Black;
+	font-style: italic;
+	font-size: 8pt;
+}
 a {
 	text-decoration: none;
 }
@@ -332,7 +338,7 @@ xmlhttp.onreadystatechange=function()
 	    var out = '<strong>Output:</strong> <em>';
 	    if (r.response) out += ' ' + r.response.numFound; else out += ' 0';
 	    out += ' items found via search...</em><table class="results">';
-	    out += '<tr><td colspan="2" style="font-size:8pt;padding-bottom:12px;"><em><strong>Query:</strong> ' + JSON.stringify(r.responseHeader.params) + '</em></td></tr>';
+	    out += '<tr><td colspan="2" class="query">Query: ' + JSON.stringify(r.responseHeader.params) + '</td></tr>';
 		if (r.response) {
 		    for(var i = 0; i < r.response.docs.length; i++) {
 		    	c = r.response.docs[i];
